@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
 import AdminLayout from './AdminLayout';
 
 export default function AdminDashboard() {
+  const [appointments, setAppointments] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [stats, setStats] = useState({
     totalAppointments: 0,
     totalUsers: 0,
@@ -25,7 +29,7 @@ export default function AdminDashboard() {
 
         const today = new Date().toDateString();
         const todayAppointments = appointmentsRes.data.filter(apt => 
-          new Date(apt.date).toDateString() === today
+          new Date(apt.appointmentDate).toDateString() === today
         ).length;
 
         setStats({
@@ -42,6 +46,18 @@ export default function AdminDashboard() {
 
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    axios.get('http://localhost:5000/api/appointments', {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => setAppointments(res.data));
+  }, []);
+
+  // Filter appointments for the selected date
+  const appointmentsForDate = appointments.filter(app =>
+    new Date(app.appointmentDate).toDateString() === selectedDate.toDateString()
+  );
 
   if (loading) return <AdminLayout><p>Loading dashboard...</p></AdminLayout>;
 
@@ -61,7 +77,25 @@ export default function AdminDashboard() {
           <h3>Today's Appointments</h3>
           <p style={{ fontSize: '2em', margin: '10px 0', color: '#ffc107' }}>{stats.todayAppointments}</p>
         </div>
-        
+      </div>
+      <div style={{ marginTop: '40px' }}>
+        <h2>Dashboard Calendar</h2>
+        <Calendar
+          value={selectedDate}
+          onChange={setSelectedDate}
+        />
+        <h3>Appointments for {selectedDate.toDateString()}:</h3>
+        <ul>
+          {appointmentsForDate.length === 0 ? (
+            <li>No appointments</li>
+          ) : (
+            appointmentsForDate.map(app => (
+              <li key={app._id}>
+                {app.firstName} {app.lastName} at {new Date(app.appointmentDate).toLocaleTimeString()}
+              </li>
+            ))
+          )}
+        </ul>
       </div>
     </AdminLayout>
   );

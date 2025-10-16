@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import PatientLayout from './PatientLayout';
-import './doctor-appointment.css'; // Reuse styling from booking form
+import './doctor-appointments.css'; // Reuse styling from booking form
 
 export default function MyAppointments() {
   const [appointments, setAppointments] = useState([]);

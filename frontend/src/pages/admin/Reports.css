@@ -1,24 +1,46 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
 .reports-container {
   padding: 2rem;
+  color: #2c3e50;
 }
 
 .report-cards {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .card {
-  background-color: #f8f9fa;
+  background-color: #ffffff;
   padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 0 4px rgba(0,0,0,0.1);
-  flex: 1 1 200px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.card strong {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #34495e;
+}
+
+.card span {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #007bff;
 }
 
 .consultation-split-view {
   display: flex;
+  flex-direction: row;
   gap: 2rem;
   margin-top: 1rem;
 }
@@ -27,24 +49,71 @@
   flex: 1;
   max-height: 500px;
   overflow-y: auto;
-  border-right: 1px solid #ccc;
+  border-right: 1px solid #ddd;
   padding-right: 1rem;
 }
 
 .consultation-item {
-  padding: 0.5rem;
+  padding: 0.75rem;
   margin-bottom: 0.5rem;
   cursor: pointer;
-  border-bottom: 1px solid #eee;
+  border-radius: 6px;
+  background-color: #f9f9f9;
   transition: background-color 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.consultation-item:hover,
+.consultation-item:hover {
+  background-color: #eaf4ff;
+  border-color: #cce5ff;
+}
+
 .consultation-item.active {
-  background-color: #e6f7ff;
+  background-color: #d0ebff;
+  border-color: #90caf9;
+}
+
+.consultation-item p {
+  margin: 0.2rem 0;
+  font-size: 0.95rem;
 }
 
 .consultation-details {
   flex: 2;
   padding-left: 1rem;
+  max-height: 500px;
+  overflow-y: auto;
+  background-color: #fefefe;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.05);
+}
+
+.consultation-details h4 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #007bff;
+}
+
+.consultation-details p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+@media screen and (max-width: 768px) {
+  .consultation-split-view {
+    flex-direction: column;
+  }
+
+  .consultation-list {
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+    padding-right: 0;
+    padding-bottom: 1rem;
+  }
+
+  .consultation-details {
+    padding-left: 0;
+  }
 }

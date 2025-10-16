@@ -1,24 +1,52 @@
 .inventory-container {
   padding: 20px;
+  max-width: 1200px;
+  margin: auto;
 }
 
 .inventory-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
+  font-size: 0.95rem;
 }
 
 .inventory-table th,
 .inventory-table td {
   border: 1px solid #ccc;
-  padding: 10px;
+  padding: 10px 12px;
   text-align: left;
 }
 
 .inventory-table th {
   background-color: #f4f4f4;
+  font-weight: 600;
 }
 
 .inventory-table tr:nth-child(even) {
   background-color: #fafafa;
+}
+
+.inventory-table td.status-available {
+  color: green;
+  font-weight: bold;
+}
+
+.inventory-table td.status-out {
+  color: red;
+  font-weight: bold;
+}
+
+.inventory-table td.low-stock {
+  background-color: #fff3cd;
+}
+
+@media screen and (max-width: 768px) {
+  .inventory-table {
+    font-size: 0.85rem;
+  }
+
+  .medicine-form {
+    grid-template-columns: 1fr;
+  }
 }

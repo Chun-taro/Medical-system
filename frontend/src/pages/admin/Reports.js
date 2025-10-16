@@ -3,6 +3,15 @@ import axios from 'axios';
 import AdminLayout from './AdminLayout';
 import './Reports.css';
 
+function useRealTime() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  return now;
+}
+
 export default function Reports() {
   const [stats, setStats] = useState(null);
   const [consultations, setConsultations] = useState([]);
@@ -26,8 +35,19 @@ export default function Reports() {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
+
+        const sortedConsultations = consultRes.data.sort((a, b) => {
+          const dateA = new Date(a.consultationCompletedAt || a.appointmentDate || 0);
+          const dateB = new Date(b.consultationCompletedAt || b.appointmentDate || 0);
+          return dateB - dateA;
+        });
+
         setStats(statsRes.data);
-        setConsultations(consultRes.data);
+        setConsultations(sortedConsultations);
+
+        if (sortedConsultations.length > 0) {
+          setExpandedId(sortedConsultations[0]._id);
+        }
       } catch (err) {
         console.error('Error fetching reports:', err.response?.data || err.message);
         setError(err.response?.data?.error || 'Failed to load reports');
@@ -38,6 +58,25 @@ export default function Reports() {
 
     fetchReports();
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = expandedId ? 'hidden' : 'auto';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [expandedId]);
+
+  const formatDateTime = (date) => {
+    try {
+      return date
+        ? new Date(date).toLocaleString('en-US', { timeZone: 'Asia/Manila' })
+        : '—';
+    } catch {
+      return '—';
+    }
+  };
+
+  const currentTime = useRealTime();
 
   return (
     <AdminLayout>
@@ -70,30 +109,44 @@ export default function Reports() {
                     onClick={() => toggleExpand(c._id)}
                   >
                     <p><strong>{c.firstName} {c.lastName}</strong></p>
-                    <p>{new Date(c.date).toLocaleDateString()}</p>
+                    <p><strong>Date:</strong> {formatDateTime(c.consultationCompletedAt || c.appointmentDate)}</p>
                     <p>{c.diagnosis}</p>
                   </div>
                 ))}
               </div>
 
               <div className="consultation-details">
-                {consultations.map(c => (
-                  expandedId === c._id && (
-                    <div key={`expanded-${c._id}`}>
-                      <h4>{c.firstName} {c.lastName}</h4>
-                      <p><strong>Date:</strong> {new Date(c.date).toLocaleDateString()}</p>
-                      <p><strong>Diagnosis:</strong> {c.diagnosis}</p>
-                      <p><strong>Management:</strong> {c.management}</p>
-                      <p><strong>Chief Complaint:</strong> {c.chiefComplaint}</p>
-                      <p><strong>Prescribed Medicines:</strong> {c.medicinesPrescribed}</p>
-                      <p><strong>Vitals:</strong> BP: {c.bloodPressure}, Temp: {c.temperature}, HR: {c.heartRate}, O₂: {c.oxygenSaturation}, BMI: {c.bmi}</p>
-                      <p><strong>Referred:</strong> {c.referredToPhysician ? `Yes (${c.physicianName || '—'})` : 'No'}</p>
-                      <p><strong>First Aid:</strong> {c.firstAidDone === 'y' ? 'Yes' : 'No'} ({c.firstAidWithin30Mins})</p>
+                {(() => {
+                  const selected = consultations.find(c => c._id === expandedId);
+                  if (!selected) return null;
+
+                  console.log(selected.consultationCompletedAt);
+
+                  return (
+                    <div key={`expanded-${selected._id}`}>
+                      <h4>{selected.firstName} {selected.lastName}</h4>
+                      <p><strong>Completed At:</strong> {formatDateTime(selected.consultationCompletedAt)}</p>
+                      <p><strong>Diagnosis:</strong> {selected.diagnosis}</p>
+                      <p><strong>Management:</strong> {selected.management}</p>
+                      <p><strong>Chief Complaint:</strong> {selected.chiefComplaint}</p>
+                      <p><strong>Prescribed Medicines:</strong></p>
+                      <ul>
+                        {Array.isArray(selected.medicinesPrescribed)
+                          ? selected.medicinesPrescribed.map((med, idx) => (
+                              <li key={idx}>{med.name} x{med.quantity}</li>
+                            ))
+                          : <li>{selected.medicinesPrescribed || '—'}</li>}
+                      </ul>
+                      <p><strong>Vitals:</strong> BP: {selected.bloodPressure}, Temp: {selected.temperature}, HR: {selected.heartRate}, O₂: {selected.oxygenSaturation}, BMI: {selected.bmi}</p>
+                      <p><strong>Referred:</strong> {selected.referredToPhysician ? `Yes (${selected.physicianName || '—'})` : 'No'}</p>
+                      <p><strong>First Aid:</strong> {selected.firstAidDone === 'y' ? 'Yes' : 'No'} ({selected.firstAidWithin30Mins})</p>
                     </div>
-                  )
-                ))}
+                  );
+                })()}
               </div>
             </div>
+
+            <p>Current time: {currentTime.toLocaleString()}</p>
           </>
         )}
       </div>

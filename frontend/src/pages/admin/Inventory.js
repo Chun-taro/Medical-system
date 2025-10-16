@@ -9,6 +9,8 @@ export default function Inventory() {
   const [form, setForm] = useState({
     name: '',
     quantityInStock: '',
+    boxesInStock: '',
+    capsulesPerBox: '',
     unit: '',
     expiryDate: ''
   });
@@ -42,7 +44,14 @@ export default function Inventory() {
       await axios.post('http://localhost:5000/api/medicines', form, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setForm({ name: '', quantityInStock: '', unit: '', expiryDate: '' });
+      setForm({
+        name: '',
+        quantityInStock: '',
+        boxesInStock: '',
+        capsulesPerBox: '',
+        unit: '',
+        expiryDate: ''
+      });
       fetchInventory();
     } catch (err) {
       console.error('Error adding medicine:', err.message);
@@ -53,39 +62,15 @@ export default function Inventory() {
     <AdminLayout>
       <div className="inventory-container">
         <h2>Medicine Inventory</h2>
-        <p>Track available stock, expiry dates, and quantities.</p>
+        <p>Track capsules, boxes, and expiry dates.</p>
 
         <form className="medicine-form" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Medicine Name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="number"
-            name="quantityInStock"
-            placeholder="Quantity"
-            value={form.quantityInStock}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="unit"
-            placeholder="Unit (e.g. pcs, bottles)"
-            value={form.unit}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="date"
-            name="expiryDate"
-            value={form.expiryDate}
-            onChange={handleChange}
-          />
+          <input type="text" name="name" placeholder="Medicine Name" value={form.name} onChange={handleChange} required />
+          <input type="number" name="quantityInStock" placeholder="Capsules in Stock" value={form.quantityInStock} onChange={handleChange} required />
+          <input type="number" name="boxesInStock" placeholder="Boxes in Stock" value={form.boxesInStock} onChange={handleChange} required />
+          <input type="number" name="capsulesPerBox" placeholder="Capsules per Box" value={form.capsulesPerBox} onChange={handleChange} required />
+          <input type="text" name="unit" placeholder="Unit (e.g. pcs, bottles)" value={form.unit} onChange={handleChange} required />
+          <input type="date" name="expiryDate" value={form.expiryDate} onChange={handleChange} />
           <button type="submit">Add Medicine</button>
         </form>
 
@@ -98,7 +83,9 @@ export default function Inventory() {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Quantity</th>
+                <th>Capsules</th>
+                <th>Boxes</th>
+                <th>Caps/Box</th>
                 <th>Unit</th>
                 <th>Expiry</th>
                 <th>Status</th>
@@ -109,6 +96,8 @@ export default function Inventory() {
                 <tr key={med._id}>
                   <td>{med.name}</td>
                   <td>{med.quantityInStock}</td>
+                  <td>{med.boxesInStock}</td>
+                  <td>{med.capsulesPerBox}</td>
                   <td>{med.unit}</td>
                   <td>{med.expiryDate ? new Date(med.expiryDate).toLocaleDateString() : '—'}</td>
                   <td>{med.available ? 'Available' : 'Out of Stock'}</td>

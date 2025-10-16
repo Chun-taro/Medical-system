@@ -6,6 +6,11 @@ import './consultation.css';
 export default function ConsultationPage() {
   const [approvedAppointments, setApprovedAppointments] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [medicineOptions, setMedicineOptions] = useState([]);
+  const [prescribedList, setPrescribedList] = useState([]);
+  const [medicineSearch, setMedicineSearch] = useState('');
+  const [showModal, setShowModal] = useState(false);
+
   const [form, setForm] = useState({
     bloodPressure: '',
     temperature: '',
@@ -22,7 +27,6 @@ export default function ConsultationPage() {
     firstAidWithin30Mins: 'n/a'
   });
 
-  // ✅ Fetch approved appointments
   const fetchApprovedAppointments = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -36,12 +40,34 @@ export default function ConsultationPage() {
     }
   };
 
+  const fetchMedicines = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get('http://localhost:5000/api/medicines', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMedicineOptions(res.data);
+    } catch (err) {
+      console.error('Error fetching medicines:', err.message);
+    }
+  };
+
   useEffect(() => {
     fetchApprovedAppointments();
+    fetchMedicines();
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, []);
 
   const handleStartConsultation = appointment => {
     setSelectedAppointment(appointment);
+    setPrescribedList([]);
+    setShowModal(true);
   };
 
   const handleChange = e => {
@@ -52,24 +78,58 @@ export default function ConsultationPage() {
     }));
   };
 
-  // ✅ Save consultation and refresh queue
-  const handleSubmit = async e => {
+  const handleMedicineToggle = (medicineId, name) => {
+    const exists = prescribedList.find(p => p.medicineId === medicineId);
+    if (exists) {
+      setPrescribedList(prev => prev.filter(p => p.medicineId !== medicineId));
+    } else {
+      setPrescribedList(prev => [...prev, { medicineId, name, quantity: 1 }]);
+    }
+  };
+
+  const handleQuantityChange = (medicineId, qty) => {
+    setPrescribedList(prev =>
+      prev.map(p =>
+        p.medicineId === medicineId ? { ...p, quantity: parseInt(qty) || 1 } : p
+      )
+    );
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem('token');
     try {
-      const token = localStorage.getItem('token');
+      // Complete the consultation
       await axios.patch(
         `http://localhost:5000/api/appointments/${selectedAppointment._id}/consultation`,
-        form,
+        { ...form, consultationCompletedAt: new Date().toISOString() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert('Consultation saved');
+
+      // Log the action in the audit log
+      await axios.post(
+        'http://localhost:5000/api/audit-log',
+        {
+          action: 'Completed Consultation',
+          details: `Consultation for appointment ${selectedAppointment._id} completed.`
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert('Consultation saved and inventory updated');
       setSelectedAppointment(null);
-      fetchApprovedAppointments(); // ✅ refresh queue
+      setShowModal(false);
+      fetchApprovedAppointments();
+      fetchMedicines();
     } catch (err) {
       console.error('Error saving consultation:', err.message);
       alert('Failed to save consultation');
     }
   };
+
+  const filteredMedicines = medicineOptions.filter(med =>
+    med.name.toLowerCase().includes(medicineSearch.toLowerCase())
+  );
 
   return (
     <AdminLayout>
@@ -104,41 +164,91 @@ export default function ConsultationPage() {
           </table>
         )}
 
-        {selectedAppointment && (
-          <>
-            <h3>Consultation for {selectedAppointment.firstName} {selectedAppointment.lastName}</h3>
-            <p>Appointment Date: {new Date(selectedAppointment.appointmentDate).toLocaleDateString()}</p>
+        {showModal && selectedAppointment && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <button className="close-button" onClick={() => setShowModal(false)}>✖</button>
+              <form onSubmit={handleSubmit} className="consultation-form">
+                <h4 className="section-label">🩺 Vital Signs</h4>
+                <input name="bloodPressure" placeholder="Blood Pressure (e.g. 120/80)" value={form.bloodPressure} onChange={handleChange} />
+                <input name="temperature" placeholder="Temperature (°C)" value={form.temperature} onChange={handleChange} />
+                <input name="oxygenSaturation" placeholder="Oxygen Saturation (%)" value={form.oxygenSaturation} onChange={handleChange} />
+                <input name="heartRate" placeholder="Heart Rate (bpm)" value={form.heartRate} onChange={handleChange} />
+                <input name="bmi" placeholder="BMI" value={form.bmi} onChange={handleChange} />
+                <input name="bmiIntervention" placeholder="BMI Intervention" value={form.bmiIntervention} onChange={handleChange} />
 
-            <form onSubmit={handleSubmit} className="consultation-form">
-              <input name="bloodPressure" placeholder="Blood Pressure" value={form.bloodPressure} onChange={handleChange} />
-              <input name="temperature" placeholder="Temperature" value={form.temperature} onChange={handleChange} />
-              <input name="oxygenSaturation" placeholder="Oxygen Saturation" value={form.oxygenSaturation} onChange={handleChange} />
-              <input name="heartRate" placeholder="Heart Rate" value={form.heartRate} onChange={handleChange} />
-              <input name="bmi" placeholder="BMI" value={form.bmi} onChange={handleChange} />
-              <input name="bmiIntervention" placeholder="BMI Intervention" value={form.bmiIntervention} onChange={handleChange} />
-              <textarea name="diagnosis" placeholder="Diagnosis" value={form.diagnosis} onChange={handleChange} rows={3} />
-              <textarea name="management" placeholder="Management Plan" value={form.management} onChange={handleChange} rows={3} />
-              <textarea name="medicinesPrescribed" placeholder="Prescribed Medicines" value={form.medicinesPrescribed} onChange={handleChange} rows={2} />
-              <label>
-                <input type="checkbox" name="referredToPhysician" checked={form.referredToPhysician} onChange={handleChange} />
-                Referred to Physician
-              </label>
-              <input name="physicianName" placeholder="Physician Name" value={form.physicianName} onChange={handleChange} />
-              <select name="firstAidDone" value={form.firstAidDone} onChange={handleChange}>
-                <option value="y">Yes</option>
-                <option value="n">No</option>
-              </select>
-              <select name="firstAidWithin30Mins" value={form.firstAidWithin30Mins} onChange={handleChange}>
-                <option value="y">Yes</option>
-                <option value="n">No</option>
-                <option value="n/a">N/A</option>
-              </select>
+                <h4 className="section-label">📝 Clinical Assessment</h4>
+                <textarea name="diagnosis" placeholder="Diagnosis" value={form.diagnosis} onChange={handleChange} rows={3} />
+                <textarea name="management" placeholder="Management Plan" value={form.management} onChange={handleChange} rows={3} />
 
-              <button type="submit">Save Consultation</button>
-            </form>
-          </>
+                <h4 className="section-label">💊 Prescribe Medicines</h4>
+                <input
+                  type="text"
+                  placeholder="Type medicine name..."
+                  value={medicineSearch}
+                  onChange={e => setMedicineSearch(e.target.value)}
+                  onBlur={() => setTimeout(() => setMedicineSearch(''), 200)}
+                  className="medicine-autocomplete"
+                />
+                {medicineSearch && (
+                  <ul className="autocomplete-suggestions">
+                    {filteredMedicines
+                      .filter(med => !prescribedList.some(p => p.medicineId === med._id))
+                      .slice(0, 5)
+                      .map(med => (
+                        <li
+                          key={med._id}
+                          onClick={() => {
+                            setPrescribedList(prev => [...prev, { medicineId: med._id, name: med.name, quantity: 1 }]);
+                            setMedicineSearch('');
+                          }}
+                        >
+                          {med.name} ({med.quantityInStock} caps)
+                        </li>
+                      ))}
+                  </ul>
+                )}
+
+                {prescribedList.length > 0 && (
+                  <div className="prescribed-list">
+                    {prescribedList.map(p => (
+                      <div key={p.medicineId} className="prescribed-row">
+                        <span>{p.name}</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={p.quantity}
+                          onChange={e => handleQuantityChange(p.medicineId, e.target.value)}
+                          placeholder="Qty"
+                        />
+                        <button type="button" onClick={() =>
+                          setPrescribedList(prev => prev.filter(m => m.medicineId !== p.medicineId))
+                        }>❌</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <h4 className="section-label">📋 Referral & First Aid</h4>
+                <label>
+                  <input type="checkbox" name="referredToPhysician" checked={form.referredToPhysician} onChange={handleChange} />
+                  Referred to Physician
+                </label>
+                <input name="physicianName" placeholder="Physician Name" value={form.physicianName} onChange={handleChange} />
+                <label>First Aid Done</label>
+                <select name="firstAidWithin30Mins" value={form.firstAidWithin30Mins} onChange={handleChange}>
+    <option value="y">Yes</option>
+    <option value="n">No</option>
+    <option value="n/a">N/A</option>
+  </select>
+
+  <button type="submit">✅ Save Consultation</button>
+</form>
+            </div>
+          </div>
         )}
       </div>
     </AdminLayout>
   );
 }
+
