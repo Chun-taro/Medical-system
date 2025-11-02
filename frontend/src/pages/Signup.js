@@ -1,4 +1,4 @@
-import './Auth.css';
+import './Signup.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -56,12 +56,12 @@ export default function Signup() {
     const { firstName, lastName, email, password, idNumber, contactNumber } = form;
 
     if (!firstName || !lastName || !email || !password || !idNumber || !contactNumber) {
-      alert('Please fill out all required fields (First Name, Last Name, Email, Password, ID Number, Contact Number)');
+      alert('Please fill out all required fields.');
       return;
     }
 
     if (password.length < 6) {
-      alert('Password must be at least 6 characters');
+      alert('Password must be at least 6 characters.');
       return;
     }
 
@@ -72,12 +72,11 @@ export default function Signup() {
 
     try {
       setLoading(true);
-      const res = await axios.post('http://localhost:5000/api/auth/signup', {
-        ...form,
-        recaptchaToken
-      }, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const res = await axios.post(
+        'http://localhost:5000/api/auth/signup',
+        { ...form, recaptchaToken },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('userId', res.data.userId);
@@ -93,28 +92,35 @@ export default function Signup() {
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-left">
-        <div className="form-wrapper">
+    <div className="signup-wrapper">
+      <div className="signup-left">
+        <img
+          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg"
+          alt="Medical background"
+        />
+        <div className="image-overlay"></div>
+      </div>
+
+      <div className="signup-right">
+        <div className="signup-form">
           <h2>Create Your Account</h2>
 
           <a href="http://localhost:5000/api/auth/google">
             <button className="google-button">Sign Up with Google</button>
           </a>
 
+          {/* Personal Info */}
           <input
             type="text"
             placeholder="First Name *"
             value={form.firstName}
             onChange={e => setForm({ ...form, firstName: e.target.value })}
-            required
           />
           <input
             type="text"
             placeholder="Last Name *"
             value={form.lastName}
             onChange={e => setForm({ ...form, lastName: e.target.value })}
-            required
           />
           <input
             type="text"
@@ -127,35 +133,33 @@ export default function Signup() {
             placeholder="ID Number *"
             value={form.idNumber}
             onChange={e => setForm({ ...form, idNumber: e.target.value })}
-            required
           />
           <input
             type="email"
             placeholder="Email Address *"
             value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })}
-            required
           />
           <input
             type="password"
             placeholder="Password *"
             value={form.password}
             onChange={e => setForm({ ...form, password: e.target.value })}
-            required
           />
           <input
             type="tel"
             placeholder="Contact Number *"
             value={form.contactNumber}
             onChange={e => setForm({ ...form, contactNumber: e.target.value })}
-            required
           />
+
           <input
             type="date"
             placeholder="Date of Birth"
             value={form.birthday}
             onChange={e => setForm({ ...form, birthday: e.target.value })}
           />
+
           <select
             value={form.sex}
             onChange={e => setForm({ ...form, sex: e.target.value })}
@@ -165,6 +169,7 @@ export default function Signup() {
             <option value="female">Female</option>
             <option value="other">Other</option>
           </select>
+
           <select
             value={form.civilStatus}
             onChange={e => setForm({ ...form, civilStatus: e.target.value })}
@@ -175,62 +180,63 @@ export default function Signup() {
             <option value="widowed">Widowed</option>
             <option value="divorced">Divorced</option>
           </select>
+
           <input
             type="text"
             placeholder="Home Address"
             value={form.homeAddress}
             onChange={e => setForm({ ...form, homeAddress: e.target.value })}
           />
+
           <select
             value={form.bloodType}
             onChange={e => setForm({ ...form, bloodType: e.target.value })}
           >
             <option value="">Blood Type</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
+            {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bt => (
+              <option key={bt} value={bt}>{bt}</option>
+            ))}
           </select>
+
+          {/* Emergency Contact */}
           <input
             type="text"
             placeholder="Emergency Contact Name"
             value={form.emergencyContact.name}
-            onChange={e => setForm({ 
-              ...form, 
-              emergencyContact: { ...form.emergencyContact, name: e.target.value }
-            })}
+            onChange={e =>
+              setForm({
+                ...form,
+                emergencyContact: { ...form.emergencyContact, name: e.target.value }
+              })
+            }
           />
           <input
             type="text"
             placeholder="Emergency Contact Relationship"
             value={form.emergencyContact.relationship}
-            onChange={e => setForm({ 
-              ...form, 
-              emergencyContact: { ...form.emergencyContact, relationship: e.target.value }
-            })}
+            onChange={e =>
+              setForm({
+                ...form,
+                emergencyContact: { ...form.emergencyContact, relationship: e.target.value }
+              })
+            }
           />
           <input
             type="tel"
             placeholder="Emergency Contact Phone"
             value={form.emergencyContact.phone}
-            onChange={e => setForm({ 
-              ...form, 
-              emergencyContact: { ...form.emergencyContact, phone: e.target.value }
-            })}
+            onChange={e =>
+              setForm({
+                ...form,
+                emergencyContact: { ...form.emergencyContact, phone: e.target.value }
+              })
+            }
           />
 
+          {/* Recaptcha */}
           <div className="recaptcha-container">
-            <Recaptcha
-              onVerify={handleRecaptchaVerify}
-              onExpire={handleRecaptchaExpire}
-            />
-            {recaptchaError && (
-              <p className="recaptcha-error">{recaptchaError}</p>
-            )}
+            <Recaptcha onVerify={handleRecaptchaVerify} onExpire={handleRecaptchaExpire} />
+            {recaptchaError && <p className="recaptcha-error">{recaptchaError}</p>}
           </div>
 
           <button onClick={handleSignup} disabled={loading}>
@@ -242,12 +248,6 @@ export default function Signup() {
             <span onClick={() => navigate('/')}>Login here</span>
           </p>
         </div>
-      </div>
-      <div className="auth-right">
-        <img
-          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg"
-          alt="Medical background"
-        />
       </div>
     </div>
   );

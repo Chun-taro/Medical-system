@@ -1,121 +1,156 @@
+/* Container */
 .inventory-container {
   padding: 20px;
   max-width: 1200px;
   margin: auto;
-  height: calc(100vh - 100px); /* Adjust based on your header/navigation height */
-  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
 }
 
+/* Headings */
+.inventory-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+
+.inventory-container p {
+  margin-bottom: 20px;
+  color: #555;
+}
+
+/* Form Styling */
+.medicine-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.medicine-form input,
+.medicine-form button {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.medicine-form input:focus {
+  border-color: #0077cc;
+  box-shadow: 0 0 0 2px rgba(0, 119, 204, 0.15);
+  outline: none;
+}
+
+.medicine-form button {
+  background-color: #0077cc;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.medicine-form button:disabled {
+  background-color: #88c0e0;
+  cursor: not-allowed;
+}
+
+.medicine-form button:hover:not(:disabled) {
+  background-color: #005fa3;
+  transform: scale(1.02);
+}
+
+/* Table Styling */
 .inventory-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin-top: 20px;
   font-size: 0.95rem;
-  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .inventory-table thead {
+  background-color: #0077cc;
+  color: #fff;
+  font-weight: 600;
   position: sticky;
   top: 0;
   z-index: 1;
-  background-color: #f4f4f4;
-}
-
-.inventory-table tbody {
-  display: block;
-  overflow-y: auto;
-  height: calc(100vh - 300px); /* Adjust based on your layout */
-}
-
-.inventory-table thead tr,
-.inventory-table tbody tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
 }
 
 .inventory-table th,
 .inventory-table td {
-  border: 1px solid #ccc;
-  padding: 10px 12px;
+  padding: 12px 15px;
   text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
-.inventory-table th {
-  background-color: #f4f4f4;
-  font-weight: 600;
-}
-
-.inventory-table tr:nth-child(even) {
+.inventory-table tbody tr:nth-child(even) {
   background-color: #fafafa;
 }
 
-.inventory-table td.status-available {
+.inventory-table tbody tr:hover {
+  background-color: #f1f8ff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* Status Styles */
+.available {
   color: green;
-  font-weight: bold;
+  font-weight: 600;
 }
 
-.inventory-table td.status-out {
+.out\ of\ stock {
   color: red;
-  font-weight: bold;
-}
-
-.inventory-table td.low-stock {
-  background-color: #fff3cd;
+  font-weight: 600;
 }
 
 .expired {
-  color: red;
-  font-weight: bold;
+  color: rgb(219, 42, 42);
+  font-weight: 600;
 }
 
-.available {
-  color: green;
-}
-
-.out-of-stock {
-  color: orange;
-}
-
+/* Delete Button */
 .delete-btn {
   background-color: #ff4444;
   color: white;
   border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .delete-btn:hover {
   background-color: #cc0000;
+  transform: scale(1.05);
 }
 
+/* Responsive */
 @media screen and (max-width: 768px) {
-  .inventory-table {
-    font-size: 0.85rem;
-  }
-
   .medicine-form {
     grid-template-columns: 1fr;
   }
+
+  .inventory-table {
+    font-size: 0.85rem;
+  }
 }
 
-/* Add width for specific columns if needed */
+/* Column widths for clarity */
 .inventory-table th:nth-child(1),
-.inventory-table td:nth-child(1) {
-  width: 20%;
-}
-
+.inventory-table td:nth-child(1) { width: 20%; }
 .inventory-table th:nth-child(2),
 .inventory-table td:nth-child(2),
 .inventory-table th:nth-child(3),
 .inventory-table td:nth-child(3),
 .inventory-table th:nth-child(4),
-.inventory-table td:nth-child(4) {
-  width: 10%;
-}
-
+.inventory-table td:nth-child(4) { width: 10%; }
 .inventory-table th:nth-child(5),
 .inventory-table td:nth-child(5),
 .inventory-table th:nth-child(6),
@@ -123,6 +158,4 @@
 .inventory-table th:nth-child(7),
 .inventory-table td:nth-child(7),
 .inventory-table th:nth-child(8),
-.inventory-table td:nth-child(8) {
-  width: 12.5%;
-}
+.inventory-table td:nth-child(8) { width: 12.5%; }

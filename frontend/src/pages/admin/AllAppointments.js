@@ -48,7 +48,7 @@ export default function AllAppointments() {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Appointment approved');
-      fetchAppointments(); // ✅ Refresh list after approval
+      fetchAppointments();
     } catch (err) {
       alert('Failed to approve appointment');
       console.error(err);
@@ -66,49 +66,73 @@ export default function AllAppointments() {
         <p>No appointments found.</p>
       ) : (
         <>
+          {/* Pending Appointments */}
           <h3>Pending Appointments</h3>
-          <div className="appointment-grid">
-            {appointments.filter(app => app.status === 'pending').map(app => (
-              <div key={app._id} className="appointment-card">
-                <div className="card-top">
-                  <span>{app.firstName} {app.lastName}</span>
-                  <span>{new Date(app.appointmentDate).toLocaleDateString()}</span>
-                </div>
-                <div className="card-info">
-                  <p><strong>Email:</strong> {app.email}</p>
-                  <p><strong>Phone:</strong> {app.phone}</p>
-                  <p><strong>Purpose:</strong> {app.purpose}</p>
-                  <p><strong>Status:</strong> {app.status}</p>
-                </div>
-                <div className="card-actions">
-                  <button onClick={() => handleApprove(app._id)}>✅</button>
-                  <button onClick={() => alert(`Edit form for ${app.firstName}`)}>✏️</button>
-                  <button onClick={() => handleDelete(app._id)}>🗑️</button>
-                </div>
-              </div>
-            ))}
+          <div className="appointment-table-wrapper">
+            <table className="appointment-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Date</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Purpose</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.filter(app => app.status === 'pending').map(app => (
+                  <tr key={app._id}>
+                    <td>{app.firstName} {app.lastName}</td>
+                    <td>{new Date(app.appointmentDate).toLocaleDateString()}</td>
+                    <td>{app.email}</td>
+                    <td>{app.phone}</td>
+                    <td>{app.purpose}</td>
+                    <td><span className="status-tag pending">Pending</span></td>
+                    <td className="action-cell">
+                      <button onClick={() => handleApprove(app._id)}>✅</button>
+                      <button onClick={() => alert(`Edit form for ${app.firstName}`)}>✏️</button>
+                      <button onClick={() => handleDelete(app._id)}>🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
+          {/* Approved Appointments */}
           <h3>Approved Appointments</h3>
-          <div className="appointment-grid">
-            {appointments.filter(app => app.status === 'approved').map(app => (
-              <div key={app._id} className="appointment-card">
-                <div className="card-top">
-                  <span>{app.firstName} {app.lastName}</span>
-                  <span>{new Date(app.appointmentDate).toLocaleDateString()}</span>
-                </div>
-                <div className="card-info">
-                  <p><strong>Email:</strong> {app.email}</p>
-                  <p><strong>Phone:</strong> {app.phone}</p>
-                  <p><strong>Purpose:</strong> {app.purpose}</p>
-                  <p><strong>Status:</strong> {app.status}</p>
-                </div>
-                <div className="card-actions">
-                  <button onClick={() => alert(`Edit form for ${app.firstName}`)}>✏️</button>
-                  <button onClick={() => handleDelete(app._id)}>🗑️</button>
-                </div>
-              </div>
-            ))}
+          <div className="appointment-table-wrapper">
+            <table className="appointment-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Date</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Purpose</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.filter(app => app.status === 'approved').map(app => (
+                  <tr key={app._id}>
+                    <td>{app.firstName} {app.lastName}</td>
+                    <td>{new Date(app.appointmentDate).toLocaleDateString()}</td>
+                    <td>{app.email}</td>
+                    <td>{app.phone}</td>
+                    <td>{app.purpose}</td>
+                    <td><span className="status-tag confirmed">Approved</span></td>
+                    <td className="action-cell">
+                      <button onClick={() => alert(`Edit form for ${app.firstName}`)}>✏️</button>
+                      <button onClick={() => handleDelete(app._id)}>🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </>
       )}

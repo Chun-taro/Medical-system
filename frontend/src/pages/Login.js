@@ -31,7 +31,7 @@ export default function Login() {
         ...form,
         recaptchaToken
       });
-      
+
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('userId', res.data.userId);
       localStorage.setItem('role', res.data.role);
@@ -43,14 +43,25 @@ export default function Login() {
 
   return (
     <div className="auth-wrapper">
+      {/* Left side image */}
       <div className="auth-left">
+        <img 
+          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg" 
+          alt="Medical background" 
+        />
+        {/* Optional overlay for gradient effect */}
+        <div className="image-overlay"></div>
+      </div>
+
+      {/* Right side login form */}
+      <div className="auth-right">
         <div className="form-wrapper">
           <h2>Welcome back!</h2>
-          
+
           <a href="http://localhost:5000/api/auth/google">
             <button className="google-button">Continue with Google</button>
           </a>
-          
+
           <input
             type="text"
             id="email"
@@ -71,7 +82,7 @@ export default function Login() {
             onChange={e => setForm({ ...form, password: e.target.value })}
           />
 
-          {/* reCAPTCHA Component */}
+          {/* reCAPTCHA */}
           <div className="recaptcha-container">
             <Recaptcha 
               onVerify={handleRecaptchaVerify}
@@ -83,18 +94,15 @@ export default function Login() {
           </div>
 
           <button onClick={handleLogin}>Continue →</button>
-          
+
           <p>
             Don't have an account? <span onClick={() => navigate('/signup')}>Register here</span>
           </p>
-          
+
           <p className="forgot-password">
             <span onClick={() => navigate('/forgot-password')}>Forgot Password?</span>
           </p>
         </div>
-      </div>
-      <div className="auth-right">
-        <img src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg" alt="Medical background" />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import AdminLayout from './AdminLayout';
-import './ManageUsers.css'; // optional styling
+import './ManageUsers.css';
 
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
@@ -64,7 +64,11 @@ export default function ManageUsers() {
                 <tr key={user._id}>
                   <td>{user.name || `${user.firstName} ${user.lastName}`}</td>
                   <td>{user.email}</td>
-                  <td>{user.role}</td>
+                  <td>
+                    <span className={`role-badge ${user.role === 'admin' ? 'role-admin' : 'role-patient'}`}>
+                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                    </span>
+                  </td>
                   <td>
                     <select
                       value={user.role}

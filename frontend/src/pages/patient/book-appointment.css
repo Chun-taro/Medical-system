@@ -1,47 +1,103 @@
+/* Container styling */
 .doctor-form-container {
-  max-width: 500px;
-  margin: auto;
-  padding: 24px;
-  background-color: #fff;
+  max-width: 600px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
+/* Headings */
 .doctor-form-container h2 {
-  margin-bottom: 8px;
-  color: #333;
+  margin-bottom: 0.5rem;
+  color: #222;
+  font-size: 1.75rem;
+  text-align: center;
 }
 
 .doctor-form-container p {
-  margin-bottom: 20px;
-  color: #666;
+  margin-bottom: 1.5rem;
+  color: #555;
+  font-size: 1rem;
+  text-align: center;
 }
 
+/* Form layout */
 .doctor-form {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1rem;
 }
 
-.doctor-form input {
-  padding: 10px;
+/* Input fields */
+.doctor-form input,
+.doctor-form textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.doctor-form input:focus,
+.doctor-form textarea:focus {
+  border-color: #0077cc;
+  box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.2);
+  outline: none;
+}
+
+/* Button styling */
 .schedule-button {
-  background-color: #e53935;
+  background-color: #0077cc;
   color: white;
-  padding: 12px;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .schedule-button:hover {
-  background-color: #c62828;
+  background-color: #005fa3;
+  transform: scale(1.02);
+}
+
+.schedule-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  .doctor-form-container {
+    padding: 1.5rem;
+    margin: 2rem 1rem;
+  }
+
+  .doctor-form-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .doctor-form-container p {
+    font-size: 0.95rem;
+  }
+
+  .doctor-form input,
+  .doctor-form textarea {
+    font-size: 0.95rem;
+  }
+
+  .schedule-button {
+    font-size: 0.95rem;
+    padding: 0.65rem 1rem;
+  }
 }

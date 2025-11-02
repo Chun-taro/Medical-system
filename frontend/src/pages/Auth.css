@@ -1,14 +1,37 @@
-/* Wrapper for the whole login page */
+/* Swap sides: image left, form right */
 .auth-wrapper {
   display: flex;
   height: 100vh;
   font-family: 'Segoe UI', sans-serif;
 }
 
-/* Left side: login form */
+/* Left side: background image */
 .auth-left {
   flex: 1;
-  padding: 3rem 2rem 3rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Optional gradient overlay */
+.auth-left .image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom right, rgba(0,0,0,0.2), rgba(0,0,0,0.2));
+}
+
+/* Right side: login form */
+.auth-right {
+  flex: 1;
+  padding: 3rem 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -16,27 +39,32 @@
   background-color: #f9f9f9;
 }
 
-/* Welcome message */
-.auth-left h2 {
+/* Form wrapper */
+.form-wrapper {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Headings */
+.auth-right h2 {
   font-size: 2rem;
   margin-bottom: 1.5rem;
   color: #0077cc;
 }
 
-/* Input fields and dropdowns */
-.auth-left input,
-.auth-left select {
+/* Inputs */
+.auth-right input,
+.auth-right select {
   margin-bottom: 1rem;
   padding: 0.75rem;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   width: 100%;
-  max-width: 400px;
 }
 
-/* Login button */
-.auth-left button {
+/* Buttons */
+.auth-right button {
   padding: 0.75rem;
   font-size: 1rem;
   background-color: #0077cc;
@@ -46,78 +74,42 @@
   cursor: pointer;
   margin-top: 1rem;
   width: 100%;
-  max-width: 400px;
 }
 
-.auth-left button:hover {
+.auth-right button:hover {
   background-color: #005fa3;
 }
 
-/* Register link */
-.auth-left p {
+/* Google login button */
+.google-button {
+  background-color: #4285f4;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  border: none;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.google-button:hover {
+  background-color: #357ae8;
+}
+
+/* Links */
+.auth-right p {
   margin-top: 1rem;
   font-size: 0.9rem;
   color: #555;
 }
 
-.auth-left span {
+.auth-right span {
   color: #0077cc;
   cursor: pointer;
   text-decoration: underline;
 }
 
-/* Right side: background image */
-.auth-right {
-  flex: 1;
-  overflow: hidden;
-}
-
-.auth-right img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.form-wrapper {
-  width: 100%;
-  max-width: 400px;
-}
-
-.google-button {
-  background-color: #4285f4;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  margin-bottom: 12px;
-  font-weight: bold;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.google-button:hover {
-  background-color: #357ae8;
-}
-
-/* Responsive tweaks */
-@media (max-width: 768px) {
-  .auth-wrapper {
-    flex-direction: column;
-  }
-
-  .auth-right {
-    display: none;
-  }
-
-  .auth-left {
-    align-items: center;
-    padding: 2rem;
-  }
-
-  .auth-left input,
-  .auth-left select,
-  .auth-left button {
-    max-width: 100%;
-  }
-}
-
+/* reCAPTCHA */
 .recaptcha-container {
   margin: 15px 0;
   display: flex;
@@ -130,4 +122,108 @@
   font-size: 12px;
   margin-top: 5px;
   text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-wrapper {
+    flex-direction: column;
+  }
+
+  .auth-left {
+    height: 200px;
+  }
+
+  .auth-right {
+    width: 100%;
+    padding: 2rem;
+    align-items: center;
+  }
+
+  .auth-right input,
+  .auth-right select,
+  .auth-right button {
+    max-width: 100%;
+  }
+}
+
+/* Left side: background image */
+.auth-left {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-left .image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom right, rgba(0,0,0,0.2), rgba(0,0,0,0.2));
+}
+
+/* Right side: signup form */
+.auth-right {
+  flex: 1;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: #f9f9f9;
+}
+
+/* Form wrapper width */
+.form-wrapper {
+  width: 100%;
+  max-width: 400px;
+}
+
+
+/* Ensure form layout consistency */
+.form-wrapper {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* stretch all children to same width */
+  gap: 1rem; /* evenly space elements */
+}
+
+/* Make all interactive elements the same width */
+.form-wrapper .google-button,
+.form-wrapper input,
+.form-wrapper button {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Google button styling */
+.google-button {
+  background-color: #4285f4;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  border: none;
+  padding: 0.75rem;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.google-button:hover {
+  background-color: #357ae8;
+}
+
+/* Remove extra bottom margins since gap handles spacing */
+.auth-right input,
+.auth-right button {
+  margin-bottom: 0;
 }

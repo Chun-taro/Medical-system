@@ -48,7 +48,17 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-wrapper">
+      {/* Left side: image */}
       <div className="auth-left">
+        <img
+          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg"
+          alt="Background"
+        />
+        <div className="image-overlay"></div>
+      </div>
+
+      {/* Right side: form */}
+      <div className="auth-right">
         <div className="form-wrapper">
           <h2>Reset Password</h2>
 
@@ -88,11 +98,8 @@ export default function ForgotPassword() {
             </>
           )}
 
-          {message && <p style={{ marginTop: '1rem', color: '#0077cc' }}>{message}</p>}
-        </div>My Project 1993ME
-      </div>
-      <div className="auth-right">
-        <img src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg" alt="Background" />
+          {message && <p className="info-message">{message}</p>}
+        </div>
       </div>
     </div>
   );

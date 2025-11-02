@@ -60,15 +60,24 @@ const dispenseCapsules = async (req, res) => {
     const med = await Medicine.findById(medicineId);
     if (!med) return res.status(404).json({ error: 'Medicine not found' });
 
-    while (med.quantityInStock < capsulesToDispense) {
-      if (med.boxesInStock > 0) {
-        med.boxesInStock -= 1;
-        med.quantityInStock += med.capsulesPerBox;
-      } else {
-        return res.status(400).json({ error: 'Not enough stock to dispense' });
-      }
+    // Calculate total available capsules (loose + in boxes)
+    const totalAvailableCapsules = med.quantityInStock + (med.boxesInStock * med.capsulesPerBox);
+    if (totalAvailableCapsules < capsulesToDispense) {
+      return res.status(400).json({ error: 'Not enough stock to dispense' });
     }
 
+    // If we need to open boxes
+    if (med.quantityInStock < capsulesToDispense) {
+      // Calculate how many boxes we need to open
+      const additionalCapsulesNeeded = capsulesToDispense - med.quantityInStock;
+      const boxesToOpen = Math.ceil(additionalCapsulesNeeded / med.capsulesPerBox);
+      
+      // Open the boxes
+      med.boxesInStock -= boxesToOpen;
+      med.quantityInStock += (boxesToOpen * med.capsulesPerBox);
+    }
+
+    // Now deduct the capsules
     med.quantityInStock -= capsulesToDispense;
     med.available = med.quantityInStock > 0 || med.boxesInStock > 0;
     await med.save();
@@ -97,15 +106,24 @@ const deductMedicines = async (req, res) => {
         continue;
       }
 
-      while (med.quantityInStock < qty) {
-        if (med.boxesInStock > 0) {
-          med.boxesInStock -= 1;
-          med.quantityInStock += med.capsulesPerBox;
-        } else {
-          return res.status(400).json({ error: `Not enough stock for ${med.name}` });
-        }
+      // Calculate total available capsules (loose + in boxes)
+      const totalAvailableCapsules = med.quantityInStock + (med.boxesInStock * med.capsulesPerBox);
+      if (totalAvailableCapsules < qty) {
+        return res.status(400).json({ error: `Not enough stock for ${med.name}` });
       }
 
+      // If we need to open boxes
+      if (med.quantityInStock < qty) {
+        // Calculate how many boxes we need to open
+        const additionalCapsulesNeeded = qty - med.quantityInStock;
+        const boxesToOpen = Math.ceil(additionalCapsulesNeeded / med.capsulesPerBox);
+        
+        // Open the boxes
+        med.boxesInStock -= boxesToOpen;
+        med.quantityInStock += (boxesToOpen * med.capsulesPerBox);
+      }
+
+      // Now deduct the capsules
       med.quantityInStock -= qty;
       med.available = med.quantityInStock > 0 || med.boxesInStock > 0;
       await med.save();

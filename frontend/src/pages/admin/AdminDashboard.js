@@ -3,6 +3,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
 import AdminLayout from './AdminLayout';
+import './admindashboard1.css';
 
 export default function AdminDashboard() {
   const [appointments, setAppointments] = useState([]);
@@ -10,7 +11,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalAppointments: 0,
     totalUsers: 0,
-    todayAppointments: 0
+    todayAppointments: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -20,23 +21,25 @@ export default function AdminDashboard() {
         const token = localStorage.getItem('token');
         const [appointmentsRes, usersRes] = await Promise.all([
           axios.get('http://localhost:5000/api/appointments', {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           }),
           axios.get('http://localhost:5000/api/users', {
-            headers: { Authorization: `Bearer ${token}` }
-          })
+            headers: { Authorization: `Bearer ${token}` },
+          }),
         ]);
 
         const today = new Date().toDateString();
-        const todayAppointments = appointmentsRes.data.filter(apt => 
-          new Date(apt.appointmentDate).toDateString() === today
+        const todayAppointments = appointmentsRes.data.filter(
+          (apt) => new Date(apt.appointmentDate).toDateString() === today
         ).length;
 
         setStats({
           totalAppointments: appointmentsRes.data.length,
           totalUsers: usersRes.data.length,
-          todayAppointments
+          todayAppointments,
         });
+
+        setAppointments(appointmentsRes.data);
       } catch (err) {
         console.error('Error fetching stats:', err);
       } finally {
@@ -47,55 +50,86 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    axios.get('http://localhost:5000/api/appointments', {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(res => setAppointments(res.data));
-  }, []);
-
-  // Filter appointments for the selected date
-  const appointmentsForDate = appointments.filter(app =>
-    new Date(app.appointmentDate).toDateString() === selectedDate.toDateString()
+  const appointmentsForDate = appointments.filter(
+    (app) =>
+      new Date(app.appointmentDate).toDateString() ===
+      selectedDate.toDateString()
   );
 
-  if (loading) return <AdminLayout><p>Loading dashboard...</p></AdminLayout>;
+  if (loading) {
+    return (
+      <AdminLayout>
+        <p className="loading-text">Loading dashboard...</p>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
-      <h2>Admin Dashboard</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '20px' }}>
-        <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-          <h3>Total Appointments</h3>
-          <p style={{ fontSize: '2em', margin: '10px 0', color: '#007bff' }}>{stats.totalAppointments}</p>
+      <div className="admin-dashboard-container">
+        {/* Left Section: Stats */}
+        <div className="dashboard-left">
+          <h2 className="dashboard-heading">📊 Dashboard Overview</h2>
+
+          <div className="stats-grid">
+            <div className="stat-card blue">
+              <h3>Total Appointments</h3>
+              <p>{stats.totalAppointments}</p>
+            </div>
+
+            <div className="stat-card green">
+              <h3>Total Users</h3>
+              <p>{stats.totalUsers}</p>
+            </div>
+
+            <div className="stat-card yellow">
+              <h3>Today's Appointments</h3>
+              <p>{stats.todayAppointments}</p>
+            </div>
+          </div>
         </div>
-        <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-          <h3>Total Users</h3>
-          <p style={{ fontSize: '2em', margin: '10px 0', color: '#28a745' }}>{stats.totalUsers}</p>
+
+        {/* Right Section: Calendar & Appointments */}
+        <div className="dashboard-right">
+          <div className="calendar-card">
+            <h2 className="dashboard-heading">📅 Calendar</h2>
+            <Calendar
+              value={selectedDate}
+              onChange={setSelectedDate}
+              className="styled-calendar"
+            />
+          </div>
+
+          <div className="appointment-section">
+            <h3 className="appointment-title">
+              Appointments for {selectedDate.toDateString()}
+            </h3>
+            <ul className="appointment-list">
+              {appointmentsForDate.length === 0 ? (
+                <li className="no-appointments">No appointments</li>
+              ) : (
+                appointmentsForDate.map((app) => (
+                  <li key={app._id} className="appointment-item">
+                    <div className="appointment-info">
+                      <strong>
+                        {app.firstName} {app.lastName}
+                      </strong>
+                      <span className="appointment-time">
+                        {new Date(app.appointmentDate).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <p className="appointment-note">
+                      Reason: {app.reason || 'N/A'}
+                    </p>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
         </div>
-        <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', textAlign: 'center' }}>
-          <h3>Today's Appointments</h3>
-          <p style={{ fontSize: '2em', margin: '10px 0', color: '#ffc107' }}>{stats.todayAppointments}</p>
-        </div>
-      </div>
-      <div style={{ marginTop: '40px' }}>
-        <h2>Dashboard Calendar</h2>
-        <Calendar
-          value={selectedDate}
-          onChange={setSelectedDate}
-        />
-        <h3>Appointments for {selectedDate.toDateString()}:</h3>
-        <ul>
-          {appointmentsForDate.length === 0 ? (
-            <li>No appointments</li>
-          ) : (
-            appointmentsForDate.map(app => (
-              <li key={app._id}>
-                {app.firstName} {app.lastName} at {new Date(app.appointmentDate).toLocaleTimeString()}
-              </li>
-            ))
-          )}
-        </ul>
       </div>
     </AdminLayout>
   );

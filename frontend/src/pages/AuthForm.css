@@ -40,3 +40,45 @@
   background-color: #0056b3;
 }
 
+/* Left side: background image */
+.auth-left {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-left .image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom right, rgba(0,0,0,0.2), rgba(0,0,0,0.2));
+}
+
+/* Right side: form */
+.auth-right {
+  flex: 1;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: #f9f9f9;
+}
+
+.form-wrapper {
+  width: 100%;
+  max-width: 400px;
+}
+
+.info-message {
+  margin-top: 1rem;
+  color: #0077cc;
+}
