@@ -106,6 +106,18 @@
   z-index: 1;
 }
 
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navbar-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
 .page-content {
   flex: 1;
   padding: 1.5rem;

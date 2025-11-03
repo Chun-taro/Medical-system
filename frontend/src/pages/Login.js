@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Recaptcha from '../components/Recaptcha';
+import MedicalLogo from './assets/MedicalLogo.png';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -56,7 +57,26 @@ export default function Login() {
       {/* Right side login form */}
       <div className="auth-right">
         <div className="form-wrapper">
-          <h2>Bukidnon State University Medical Clinic</h2>
+          <img
+  src={MedicalLogo}
+  alt="BukSU Medical Logo"
+  style={{
+    width: '200px',
+    height: 'auto',
+    display: 'block',
+    margin: '0 auto'
+  }}
+/>
+          <h2 style={{
+  fontSize: '2.5rem',
+  color: '#0077cc',
+  textAlign: 'center',
+  margin: '1rem 0',
+  fontWeight: '600',
+  fontFamily: 'Segoe UI, sans-serif'
+}}>
+  BukSU Medical Clinic
+</h2>
 
           <a href="http://localhost:5000/api/auth/google">
             <button className="google-button">Continue with Google</button>

@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   CalendarDays,
   CalendarPlus,
-  User,
   LogOut,
 } from 'lucide-react';
 
@@ -18,21 +17,21 @@ export default function PatientLayout({ children }) {
   // ✅ Load user data safely
   const user = {
     firstName: (localStorage.getItem('firstName') || 'Patient').trim(),
+    middleName: (localStorage.getItem('middleName') || '').trim(),
     lastName: (localStorage.getItem('lastName') || '').trim(),
     profileImage: (localStorage.getItem('profileImage') || '').trim(),
   };
 
   const handleLogout = () => {
-    // Clear only user-related data
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
     localStorage.removeItem('firstName');
+    localStorage.removeItem('middleName');
     localStorage.removeItem('lastName');
     localStorage.removeItem('profileImage');
     navigate('/', { replace: true });
   };
 
-  // ✅ Close dropdown if clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -43,7 +42,6 @@ export default function PatientLayout({ children }) {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  // ✅ Get initials if no profile image
   const getInitials = (first, last) => {
     return `${first?.[0] || ''}${last?.[0] || ''}`.toUpperCase();
   };
@@ -77,14 +75,6 @@ export default function PatientLayout({ children }) {
             <CalendarPlus className="menu-icon" />
             <span>Book Appointment</span>
           </li>
-
-          <li
-            className={location.pathname === '/patient-profile' ? 'active' : ''}
-            onClick={() => navigate('/patient-profile')}
-          >
-            <User className="menu-icon" />
-            <span>Profile</span>
-          </li>
         </ul>
 
         <button onClick={handleLogout} className="logout-button">
@@ -96,11 +86,14 @@ export default function PatientLayout({ children }) {
       {/* Main content */}
       <main className="main-content">
         <nav className="navbar">
-          <strong>
-            Welcome, {user.firstName} {user.lastName}
-          </strong>
+          <div className="navbar-left">
+            <h1 className="fb-name">
+              {user.firstName}{' '}
+              {user.middleName ? `${user.middleName} ` : ''}
+              {user.lastName}
+            </h1>
+          </div>
 
-          {/* Profile Icon Dropdown */}
           <div className="profile-menu" ref={dropdownRef}>
             {user.profileImage ? (
               <img
