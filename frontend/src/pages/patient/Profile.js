@@ -38,7 +38,7 @@ export default function Profile() {
 
     const data = await res.json();
     if (res.ok) {
-      setPatient(prev => ({ ...prev, profileImage: data.avatar }));
+      setPatient(prev => ({ ...prev, avatar: data.avatar }));
       alert('Profile picture updated');
     }
   };
@@ -72,11 +72,7 @@ export default function Profile() {
       <div className="fb-profile-container">
         <div className="fb-header-bar">
           <div className="fb-avatar-wrap">
-            <img
-              src={patient.profileImage || '/avatar.png'}
-              alt="Profile"
-              className="fb-avatar"
-            />
+            <img src={patient.avatar || '/avatar.png'} alt="Profile" className="fb-avatar" />
             <label className="fb-avatar-icon">
               <FaCamera />
               <input

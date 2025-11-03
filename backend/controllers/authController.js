@@ -1,129 +1,64 @@
+// controllers/authController.js
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const axios = require('axios');
+const jwt = require('jsonwebtoken');
 
-// Add reCAPTCHA verification function
-const verifyRecaptcha = async (token) => {
-  try {
-    const response = await axios.post('https://www.google.com/recaptcha/api/siteverify', null, {
-      params: {
-        secret: process.env.RECAPTCHA_SECRET_KEY,
-        response: token
-      }
-    });
-    return response.data.success;
-  } catch (error) {
-    console.error('reCAPTCHA verification error:', error);
-    return false;
-  }
-};
+
+// Add this above your `googleSignup` function
 
 const signup = async (req, res) => {
   try {
-    const { 
-      firstName, 
-      lastName, 
-      middleName,
-      email, 
-      password, 
-      role, 
-      recaptchaToken,
-      idNumber,
-      sex,
-      civilStatus,
-      birthday,
-      age,
-      homeAddress,
-      contactNumber,
-      emergencyContact,
-      bloodType,
-      allergies,
-      medicalHistory,
-      currentMedications,
-      familyHistory
-    } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
-    // Verify reCAPTCHA
-    const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
-    if (!isRecaptchaValid) {
-      return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
-
-    // Check if ID number already exists
-    if (idNumber) {
-      const existingId = await User.findOne({ idNumber });
-      if (existingId) {
-        return res.status(400).json({ error: 'ID Number already exists' });
-      }
+      return res.status(400).json({ error: 'Email already registered' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({
+
+    const newUser = new User({
       firstName,
       lastName,
-      middleName,
       email,
       password: hashedPassword,
-      role: role || 'patient',
-      idNumber,
-      sex,
-      civilStatus,
-      birthday,
-      age,
-      homeAddress,
-      contactNumber,
-      emergencyContact,
-      bloodType,
-      allergies: allergies || [],
-      medicalHistory: medicalHistory || [],
-      currentMedications: currentMedications || [],
-      familyHistory: familyHistory || {}
+      role: 'patient'
     });
 
-    await user.save();
+    await newUser.save();
 
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: newUser._id, role: newUser.role },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
     res.json({
+      message: 'Signup successful',
       token,
-      userId: user._id,
-      role: user.role,
-      message: 'User created successfully'
+      userId: newUser._id,
+      role: newUser.role
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error('❌ Signup error:', err.message);
+    res.status(500).json({ error: 'Signup failed' });
   }
 };
 
 const login = async (req, res) => {
   try {
-    const { email, password, recaptchaToken } = req.body;
-
-    // Verify reCAPTCHA
-    const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
-    if (!isRecaptchaValid) {
-      return res.status(400).json({ error: 'reCAPTCHA verification failed' });
-    }
+    const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
+    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign(
       { userId: user._id, role: user.role },
@@ -132,36 +67,81 @@ const login = async (req, res) => {
     );
 
     res.json({
+      message: 'Login successful',
       token,
       userId: user._id,
-      role: user.role,
-      message: 'Login successful'
+      role: user.role
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error('❌ Login error:', err.message);
+    res.status(500).json({ error: 'Login failed' });
   }
 };
 
-// Token validation function
 const validateToken = async (req, res) => {
-  res.json({
-    valid: true,
-    userId: req.user._id,
-    role: req.user.role,
-    email: req.user.email
-  });
+  res.json({ valid: true });
 };
 
-// Google signup completion
 const googleSignup = async (req, res) => {
   try {
-    const { 
+    const {
       googleId,
-      email,
       firstName,
       lastName,
       middleName,
-      recaptchaToken,
+      email,
+      password,
+      role,
+      idNumber,
+      sex,
+      civilStatus,
+      birthday,
+      age,
+      homeAddress,
+      contactNumber,
+      emergencyContact,
+      bloodType,
+      allergies,
+      medicalHistory,
+      currentMedications,
+      familyHistory,
+      recaptchaToken
+    } = req.body;
+
+    // ✅ Verify reCAPTCHA
+    const recaptchaRes = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify`,
+      null,
+      {
+        params: {
+          secret: process.env.RECAPTCHA_SECRET,
+          response: recaptchaToken
+        }
+      }
+    );
+
+    if (!recaptchaRes.data.success) {
+      return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+    }
+
+    // ✅ Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    // ✅ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ✅ Create new user
+    const newUser = new User({
+      googleId,
+      firstName,
+      lastName,
+      middleName,
+      email,
+      password: hashedPassword,
+      role,
       idNumber,
       sex,
       civilStatus,
@@ -175,80 +155,35 @@ const googleSignup = async (req, res) => {
       medicalHistory,
       currentMedications,
       familyHistory
-    } = req.body;
-
-    // Verify reCAPTCHA
-    const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
-    if (!isRecaptchaValid) {
-      return res.status(400).json({ error: 'reCAPTCHA verification failed' });
-    }
-
-    // Check if user with this Google ID already exists
-    const existingUser = await User.findOne({ googleId });
-    if (existingUser) {
-      return res.status(400).json({ error: 'User already exists with this Google account' });
-    }
-
-    // Check if email already exists
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).json({ error: 'Email already exists' });
-    }
-
-    // Check if ID number already exists
-    if (idNumber) {
-      const existingId = await User.findOne({ idNumber });
-      if (existingId) {
-        return res.status(400).json({ error: 'ID Number already exists' });
-      }
-    }
-
-    const user = new User({
-      googleId,
-      email,
-      firstName,
-      lastName,
-      middleName,
-      password: 'google-oauth', // Placeholder password for Google users
-      role: 'patient',
-      idNumber,
-      sex,
-      civilStatus,
-      birthday,
-      age,
-      homeAddress,
-      contactNumber,
-      emergencyContact,
-      bloodType,
-      allergies: allergies || [],
-      medicalHistory: medicalHistory || [],
-      currentMedications: currentMedications || [],
-      familyHistory: familyHistory || {}
     });
 
-    await user.save();
+    await newUser.save();
 
+    // ✅ Issue JWT
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: newUser._id, role: newUser.role },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
     res.json({
+      message: 'Signup successful',
       token,
-      userId: user._id,
-      role: user.role,
-      googleId: user.googleId,
-      message: 'Google signup completed successfully'
+      userId: newUser._id,
+      role: newUser.role,
+      googleId: newUser.googleId
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error('❌ Google signup error:', err.message);
+    res.status(500).json({ error: 'Signup failed' });
   }
 };
 
-module.exports = { 
-  signup, 
-  login, 
+
+
+module.exports = {
+  signup,
+  login,
   validateToken,
   googleSignup
 };

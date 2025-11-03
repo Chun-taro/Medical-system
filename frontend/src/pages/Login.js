@@ -56,7 +56,7 @@ export default function Login() {
       {/* Right side login form */}
       <div className="auth-right">
         <div className="form-wrapper">
-          <h2>Welcome back!</h2>
+          <h2>Bukidnon State University Medical Clinic</h2>
 
           <a href="http://localhost:5000/api/auth/google">
             <button className="google-button">Continue with Google</button>
