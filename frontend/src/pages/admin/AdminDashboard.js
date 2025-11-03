@@ -56,6 +56,16 @@ export default function AdminDashboard() {
       selectedDate.toDateString()
   );
 
+  const highlightDates = ({ date, view }) => {
+    if (view === 'month') {
+      const hasAppointment = appointments.some(
+        (app) =>
+          new Date(app.appointmentDate).toDateString() === date.toDateString()
+      );
+      return hasAppointment ? 'has-appointment' : null;
+    }
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -97,6 +107,7 @@ export default function AdminDashboard() {
               value={selectedDate}
               onChange={setSelectedDate}
               className="styled-calendar"
+              tileClassName={highlightDates}
             />
           </div>
 
@@ -108,24 +119,33 @@ export default function AdminDashboard() {
               {appointmentsForDate.length === 0 ? (
                 <li className="no-appointments">No appointments</li>
               ) : (
-                appointmentsForDate.map((app) => (
-                  <li key={app._id} className="appointment-item">
-                    <div className="appointment-info">
-                      <strong>
-                        {app.firstName} {app.lastName}
-                      </strong>
-                      <span className="appointment-time">
-                        {new Date(app.appointmentDate).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                    <p className="appointment-note">
-                      Reason: {app.reason || 'N/A'}
-                    </p>
-                  </li>
-                ))
+                appointmentsForDate.map((app) => {
+                  const isPast = new Date(app.appointmentDate) < new Date();
+
+                  return (
+                    <li
+                      key={app._id}
+                      className={`appointment-item ${
+                        isPast ? 'past-appointment' : ''
+                      }`}
+                    >
+                      <div className="appointment-info">
+                        <strong>
+                          {app.firstName} {app.lastName}
+                        </strong>
+                        <span className="appointment-time">
+                          {new Date(app.appointmentDate).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      <p className="appointment-note">
+                        Purpose: {app.purpose || 'N/A'}
+                      </p>
+                    </li>
+                  );
+                })
               )}
             </ul>
           </div>

@@ -16,6 +16,7 @@ import ManageUsers from './pages/admin/ManageUsers';
 import Reports from './pages/admin/Reports';
 import ConsultationPage from './pages/admin/ConsultationPage';
 import Inventory from './pages/admin/Inventory';
+import AdminProfile from './pages/admin/AdminProfile';
 
 // Patient pages
 import PatientDashboard from './pages/patient/PatientDashboard';
@@ -69,6 +70,7 @@ function App() {
             <Inventory />
           </ProtectedRoute>
         } />
+        <Route path="/AdminProfile" element={<AdminProfile />} />
 
         {/* Patient routes */}
         <Route path="/patient-dashboard" element={

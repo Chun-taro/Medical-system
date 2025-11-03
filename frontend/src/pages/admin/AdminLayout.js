@@ -6,7 +6,6 @@ import {
   CalendarDays,
   Users,
   BarChart3,
-  ClipboardList,
   Package,
   LogOut,
   Stethoscope,
@@ -104,7 +103,7 @@ export default function AdminLayout({ children }) {
 
             {dropdownOpen && (
               <div className="dropdown">
-                <button onClick={() => navigate('/admin-profile')}>
+                <button onClick={() => navigate('/AdminProfile')}>
                   View Profile
                 </button>
                 <button onClick={handleLogout}>Logout</button>

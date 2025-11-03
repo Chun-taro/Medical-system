@@ -189,6 +189,58 @@
 }
 
 /* ────────────────────────────────
+   Stat Cards (Compact Version)
+────────────────────────────────── */
+.stats-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.stat-card h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.stat-card p {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.stat-card:hover {
+  transform: scale(1.03);
+}
+
+/* Color Variants */
+.stat-card.blue {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.stat-card.green {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.stat-card.yellow {
+  background-color: #fef9c3;
+  color: #92400e;
+}
+
+/* ────────────────────────────────
    Responsive Design
 ────────────────────────────────── */
 @media (min-width: 768px) {
@@ -234,4 +286,18 @@
     padding: 0.5rem;
     gap: 5px;
   }
+}
+
+/* Highlight calendar dates with appointments */
+.has-appointment {
+  background-color: #fde68a !important;
+  border-radius: 50%;
+  font-weight: bold;
+  color: #1e293b;
+}
+.past-appointment {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-left: 4px solid #9ca3af;
+  opacity: 0.85;
 }

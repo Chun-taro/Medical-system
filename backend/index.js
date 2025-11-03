@@ -4,11 +4,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 
 const authRoutes = require('./routes/auth');
 const appointmentRoutes = require('./routes/appointments');
-const profileRoutes = require('./routes/profile');
-const avatarRoutes = require('./routes/avatar');
+const profileRoutes = require('./routes/profile'); // includes avatar upload
 const userRoutes = require('./routes/users');
 const resetRoutes = require('./routes/reset');
 const medicineRoutes = require('./routes/medicines');
@@ -42,8 +42,7 @@ app.use('/uploads', express.static('uploads'));
 // 📦 Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/profile', avatarRoutes); // avatar upload
+app.use('/api/profile', profileRoutes); // ✅ avatar upload handled here
 app.use('/api/users', userRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/medicines', medicineRoutes);
@@ -69,12 +68,11 @@ mongoose.connect(uri)
     process.exit(1);
   });
 
-// 🧠 Runtime error logging
 mongoose.connection.on('error', err => {
   console.error('❌ MongoDB runtime error:', err.message);
 });
 
-const jwt = require('jsonwebtoken');
+mongoose.set('debug', true);
 
 // 🔐 Google OAuth callback route
 app.get('/api/auth/google/callback',
@@ -90,7 +88,6 @@ app.get('/api/auth/google/callback',
         return res.redirect('http://localhost:3000/oauth-failure');
       }
 
-      // Check if this is a new user who needs to complete signup
       if (user.isNewUser) {
         console.log(`🆕 New Google user needs to complete signup: ${user.email}`);
         const signupUrl = new URL('http://localhost:3000/google-signup');
@@ -98,7 +95,6 @@ app.get('/api/auth/google/callback',
         signupUrl.searchParams.set('email', user.email);
         signupUrl.searchParams.set('firstName', user.firstName);
         signupUrl.searchParams.set('lastName', user.lastName);
-        
         console.log('🔄 Redirecting to Google signup:', signupUrl.toString());
         return res.redirect(signupUrl.toString());
       }
@@ -137,5 +133,17 @@ app.get('/api/auth/google/callback',
   }
 );
 
+// 🧪 Debug route (protected)
+const { auth } = require('./middleware/auth');
+const User = require('./models/User');
 
-mongoose.set('debug', true);
+app.get('/api/debug/profile/:id', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    console.error('❌ Error fetching profile by ID:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});

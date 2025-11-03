@@ -11,6 +11,9 @@ export default function ConsultationPage() {
   const [medicineSearch, setMedicineSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
 
+  const [showMRFModal, setShowMRFModal] = useState(false);
+  const [patientProfile, setPatientProfile] = useState(null);
+
   const [form, setForm] = useState({
     bloodPressure: '',
     temperature: '',
@@ -49,6 +52,25 @@ export default function ConsultationPage() {
       setMedicineOptions(res.data);
     } catch (err) {
       console.error('Error fetching medicines:', err.message);
+    }
+  };
+
+  const handleViewMRF = async (userId) => {
+    if (!userId) {
+      alert('User ID is missing for this appointment.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`http://localhost:5000/api/users/profile/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPatientProfile(res.data);
+      setShowMRFModal(true);
+    } catch (err) {
+      console.error('Error fetching patient profile:', err.message);
+      alert('Failed to load patient profile');
     }
   };
 
@@ -92,16 +114,14 @@ export default function ConsultationPage() {
     e.preventDefault();
     const token = localStorage.getItem('token');
 
-    // Validate prescribed medicines - filter out medicines with 0 quantity
     const validPrescribedList = prescribedList.filter(med => med.quantity > 0);
-    
+
     if (prescribedList.length > 0 && validPrescribedList.length === 0) {
       alert('Please set quantities for prescribed medicines or remove them.');
       return;
     }
 
     try {
-      // 1. Deduct medicines from inventory
       if (validPrescribedList.length > 0) {
         await axios.post(
           'http://localhost:5000/api/medicines/deduct',
@@ -110,7 +130,6 @@ export default function ConsultationPage() {
         );
       }
 
-      // 2. Complete the consultation
       await axios.patch(
         `http://localhost:5000/api/appointments/${selectedAppointment._id}/consultation`,
         {
@@ -154,132 +173,188 @@ export default function ConsultationPage() {
               </tr>
             </thead>
             <tbody>
-              {approvedAppointments.map(app => (
-                <tr key={app._id}>
-                  <td>{app.firstName} {app.lastName}</td>
-                  <td>{app.email}</td>
-                  <td>{new Date(app.appointmentDate).toLocaleDateString()}</td>
-                  <td>{app.purpose}</td>
-                  <td>
-                    <button onClick={() => handleStartConsultation(app)}>🩺 Start</button>
-                  </td>
-                </tr>
-              ))}
+              {approvedAppointments.map(app => {
+  console.log('Appointment:', app); // 👈 Add this line
+
+  return (
+    <tr key={app._id}>
+      <td>
+        <span
+          className="clickable-name"
+          onClick={() => handleViewMRF(app.patientId)} // or app.patient._id, etc.
+        >
+          {app.firstName} {app.lastName}
+        </span>
+      </td>
+      <td>{app.email}</td>
+      <td>{new Date(app.appointmentDate).toLocaleDateString()}</td>
+      <td>{app.purpose}</td>
+      <td>
+        <button onClick={() => handleStartConsultation(app)}>🩺 Start</button>
+      </td>
+    </tr>
+  );
+})}
             </tbody>
           </table>
         )}
 
-        {showModal && selectedAppointment && (
+        {/* MRF Modal */}
+        {showMRFModal && patientProfile && (
           <div className="modal-overlay">
             <div className="modal-content">
-              <button className="close-button" onClick={() => setShowModal(false)}>✖</button>
-              <form onSubmit={handleSubmit} className="consultation-form">
-                <h4 className="section-label">🩺 Vital Signs</h4>
-                <input name="bloodPressure" placeholder="Blood Pressure (e.g. 120/80)" value={form.bloodPressure} onChange={handleChange} />
-                <input name="temperature" placeholder="Temperature (°C)" value={form.temperature} onChange={handleChange} />
-                <input name="oxygenSaturation" placeholder="Oxygen Saturation (%)" value={form.oxygenSaturation} onChange={handleChange} />
-                <input name="heartRate" placeholder="Heart Rate (bpm)" value={form.heartRate} onChange={handleChange} />
-                <input name="bmi" placeholder="BMI" value={form.bmi} onChange={handleChange} />
-                <input name="bmiIntervention" placeholder="BMI Intervention" value={form.bmiIntervention} onChange={handleChange} />
-
-                <h4 className="section-label">📝 Clinical Assessment</h4>
-                <textarea name="diagnosis" placeholder="Diagnosis" value={form.diagnosis} onChange={handleChange} rows={3} />
-                <textarea name="management" placeholder="Management Plan" value={form.management} onChange={handleChange} rows={3} />
-
-                <h4 className="section-label">💊 Prescribe Medicines</h4>
-                <input
-                  type="text"
-                  placeholder="Type medicine name..."
-                  value={medicineSearch}
-                  onChange={e => setMedicineSearch(e.target.value)}
-                  onBlur={() => setTimeout(() => setMedicineSearch(''), 200)}
-                  className="medicine-autocomplete"
-                />
-                {medicineSearch && (
-  <ul className="autocomplete-suggestions">
-    {filteredMedicines
-      .filter(med => !prescribedList.some(p => p.medicineId === med._id))
-      .slice(0, 5)
-      .map(med => (
-        <li
-          key={med._id}
-          onClick={() => {
-            setPrescribedList(prev => [
-              ...prev,
-              {
-                medicineId: med._id,
-                name: med.name,
-                quantity: 0,
-                expiryDate: med.expiryDate // ✅ include expiry here
-              }
-            ]);
-            setMedicineSearch('');
-          }}
-        >
-          {med.name} ({med.quantityInStock} caps) — Exp: {med.expiryDate ? new Date(med.expiryDate).toLocaleDateString() : '—'}
-        </li>
-      ))}
-  </ul>
-)}
-
-                {prescribedList.length > 0 && (
-  <div className="prescribed-list">
-    <h5>Prescribed Medicines:</h5>
-    {prescribedList.map(p => (
-      <div key={p.medicineId} className="prescribed-row">
-        <div className="medicine-info">
-          <span className="medicine-name">{p.name}</span>
-          <span className="expiry-date">Exp: {p.expiryDate ? new Date(p.expiryDate).toLocaleDateString() : '—'}</span>
-        </div>
-        <div className="quantity-controls">
-          <label>Quantity:</label>
-          <input
-            type="number"
-            min="0"
-            max="999"
-            value={p.quantity}
-            onChange={e => handleQuantityChange(p.medicineId, e.target.value)}
-            placeholder="0"
-            className="quantity-input"
-          />
-          <span className="capsules-label">capsules</span>
-        </div>
-        <button
-          type="button"
-          className="remove-medicine"
-          onClick={() =>
-            setPrescribedList(prev => prev.filter(m => m.medicineId !== p.medicineId))
-          }
-          title="Remove medicine"
-        >
-          ❌ Remove
-        </button>
-      </div>
-    ))}
-  </div>
-)}
-
-                <h4 className="section-label">📋 Referral & First Aid</h4>
-                <label>
-                  <input type="checkbox" name="referredToPhysician" checked={form.referredToPhysician} onChange={handleChange} />
-                  Referred to Physician
-                </label>
-                <input name="physicianName" placeholder="Physician Name" value={form.physicianName} onChange={handleChange} />
-                <label>First Aid Done</label>
-                <select name="firstAidWithin30Mins" value={form.firstAidWithin30Mins} onChange={handleChange}>
-                  <option value="y">Yes</option>
-                  <option value="n">No</option>
-                  <option value="n/a">N/A</option>
-                
-  </select>
-
-  <button type="submit">✅ Save Consultation</button>
-</form>
+              <button className="close-button" onClick={() => setShowMRFModal(false)}>✖</button>
+              <h3>🩺 Medical Record Form</h3>
+              <div className="mrf-section">
+                <p><strong>Name:</strong> {patientProfile.firstName} {patientProfile.middleName} {patientProfile.lastName}</p>
+                <p><strong>Email:</strong> {patientProfile.email}</p>
+                <p><strong>Birthday:</strong> {patientProfile.birthday?.slice(0, 10)}</p>
+                <p><strong>Sex:</strong> {patientProfile.sex}</p>
+                <p><strong>Civil Status:</strong> {patientProfile.civilStatus}</p>
+                <p><strong>Address:</strong> {patientProfile.homeAddress}</p>
+                <p><strong>Contact:</strong> {patientProfile.contactNumber}</p>
+                <p><strong>Blood Type:</strong> {patientProfile.bloodType}</p>
+                <p><strong>Allergies:</strong> {patientProfile.allergies?.join(', ') || '—'}</p>
+                <p><strong>Medical History:</strong> {patientProfile.medicalHistory?.join(', ') || '—'}</p>
+                <p><strong>Current Medications:</strong> {patientProfile.currentMedications?.join(', ') || '—'}</p>
+                <p><strong>Emergency Contact:</strong> {patientProfile.emergencyContact?.name} ({patientProfile.emergencyContact?.relationship}) - {patientProfile.emergencyContact?.phone}</p>
+                <p><strong>Family History:</strong> {
+                  Object.entries(patientProfile.familyHistory || {}).map(([key, val]) =>
+                    typeof val === 'boolean' ? (val ? `${key}, ` : '') : val ? `Other: ${val}` : ''
+                  )
+                }</p>
+              </div>
             </div>
           </div>
         )}
+        {showModal && selectedAppointment && (
+  <div className="modal-overlay">
+    <div className="consultation-modal">
+      <button className="close-button" onClick={() => setShowModal(false)}>✖</button>
+      <form onSubmit={handleSubmit} className="consultation-form">
+        <h3 className="modal-title">🩺 Consultation Form</h3>
+
+        {/* Vital Signs */}
+        <div className="form-section">
+          <h4 className="section-label">Vital Signs</h4>
+          <input name="bloodPressure" placeholder="Blood Pressure (e.g. 120/80)" value={form.bloodPressure} onChange={handleChange} />
+          <input name="temperature" placeholder="Temperature (°C)" value={form.temperature} onChange={handleChange} />
+          <input name="oxygenSaturation" placeholder="Oxygen Saturation (%)" value={form.oxygenSaturation} onChange={handleChange} />
+          <input name="heartRate" placeholder="Heart Rate (bpm)" value={form.heartRate} onChange={handleChange} />
+          <input name="bmi" placeholder="BMI" value={form.bmi} onChange={handleChange} />
+          <input name="bmiIntervention" placeholder="BMI Intervention" value={form.bmiIntervention} onChange={handleChange} />
+        </div>
+
+        {/* Clinical Assessment */}
+        <div className="form-section">
+          <h4 className="section-label">Clinical Assessment</h4>
+          <textarea name="diagnosis" placeholder="Diagnosis" value={form.diagnosis} onChange={handleChange} rows={3} />
+          <textarea name="management" placeholder="Management Plan" value={form.management} onChange={handleChange} rows={3} />
+        </div>
+
+        {/* Prescribe Medicines */}
+        <div className="form-section">
+          <h4 className="section-label">Prescribe Medicines</h4>
+          <input
+            type="text"
+            placeholder="Type medicine name..."
+            value={medicineSearch}
+            onChange={e => setMedicineSearch(e.target.value)}
+            onBlur={() => setTimeout(() => setMedicineSearch(''), 200)}
+            className="medicine-autocomplete"
+          />
+          {medicineSearch && (
+            <ul className="autocomplete-suggestions">
+              {filteredMedicines
+                .filter(med => !prescribedList.some(p => p.medicineId === med._id))
+                .slice(0, 5)
+                .map(med => (
+                  <li
+                    key={med._id}
+                    onClick={() => {
+                      setPrescribedList(prev => [
+                        ...prev,
+                        {
+                          medicineId: med._id,
+                          name: med.name,
+                          quantity: 0,
+                          expiryDate: med.expiryDate
+                        }
+                      ]);
+                      setMedicineSearch('');
+                    }}
+                  >
+                    {med.name} ({med.quantityInStock} caps) — Exp: {med.expiryDate ? new Date(med.expiryDate).toLocaleDateString() : '—'}
+                  </li>
+                ))}
+            </ul>
+          )}
+
+          {prescribedList.length > 0 && (
+            <div className="prescribed-list">
+              <h5>Prescribed Medicines:</h5>
+              {prescribedList.map(p => (
+                <div key={p.medicineId} className="prescribed-row">
+                  <div className="medicine-info">
+                    <span className="medicine-name">{p.name}</span>
+                    <span className="expiry-date">Exp: {p.expiryDate ? new Date(p.expiryDate).toLocaleDateString() : '—'}</span>
+                  </div>
+                  <div className="quantity-controls">
+                    <label>Quantity:</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="999"
+                      value={p.quantity}
+                      onChange={e => handleQuantityChange(p.medicineId, e.target.value)}
+                      placeholder="0"
+                      className="quantity-input"
+                    />
+                    <span className="capsules-label">capsules</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="remove-medicine"
+                    onClick={() =>
+                      setPrescribedList(prev => prev.filter(m => m.medicineId !== p.medicineId))
+                    }
+                    title="Remove medicine"
+                  >
+                    ❌ Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Referral */}
+        <div className="form-section">
+          <h4 className="section-label">Referral</h4>
+          <label className="checkbox-label">
+            <input type="checkbox" name="referredToPhysician" checked={form.referredToPhysician} onChange={handleChange} />
+            Referred to Physician
+          </label>
+          <input name="physicianName" placeholder="Physician Name" value={form.physicianName} onChange={handleChange} />
+        </div>
+
+        {/* First Aid */}
+        <div className="form-section">
+          <h4 className="section-label">First Aid</h4>
+          <label>First Aid Done Within 30 Minutes</label>
+          <select name="firstAidWithin30Mins" value={form.firstAidWithin30Mins} onChange={handleChange}>
+            <option value="y">Yes</option>
+            <option value="n">No</option>
+            <option value="n/a">N/A</option>
+          </select>
+        </div>
+
+        <button type="submit">✅ Save Consultation</button>
+      </form>
+    </div>
+  </div>
+)}
       </div>
     </AdminLayout>
   );
 }
-

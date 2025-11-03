@@ -1,12 +1,19 @@
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
-const { getProfile, updateProfile } = require('../controllers/profileController');
+const {
+  getProfile,
+  updateProfile,
+  uploadAvatar
+} = require('../controllers/profileController');
 
-// GET profile of logged-in user
+
+// ✅ Use in-memory storage to avoid local disk writes
+const upload = multer({ storage: multer.memoryStorage() });
+
 router.get('/', auth, getProfile);
-
-// PUT update profile of logged-in user
 router.put('/', auth, updateProfile);
+router.post('/avatar', auth, upload.single('avatar'), uploadAvatar);
 
 module.exports = router;

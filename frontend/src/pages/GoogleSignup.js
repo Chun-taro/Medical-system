@@ -1,4 +1,4 @@
-import './Auth.css';
+import './Signup.css';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -7,10 +7,12 @@ import Recaptcha from '../components/Recaptcha';
 export default function GoogleSignup() {
   const [form, setForm] = useState({
     googleId: '',
-    email: '',
     firstName: '',
     lastName: '',
     middleName: '',
+    email: '',
+    password: '',
+    role: 'patient',
     idNumber: '',
     sex: '',
     civilStatus: '',
@@ -42,7 +44,6 @@ export default function GoogleSignup() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get Google user data from URL parameters
     const params = new URLSearchParams(window.location.search);
     const googleId = params.get('googleId');
     const email = params.get('email');
@@ -58,7 +59,6 @@ export default function GoogleSignup() {
         lastName
       }));
     } else {
-      // If no Google data, redirect to regular signup
       navigate('/signup');
     }
   }, [navigate]);
@@ -74,10 +74,15 @@ export default function GoogleSignup() {
   };
 
   const handleSignup = async () => {
-    const { googleId, email, firstName, lastName, idNumber, contactNumber } = form;
+    const { firstName, lastName, email, password, idNumber, contactNumber } = form;
 
-    if (!googleId || !email || !firstName || !lastName || !idNumber || !contactNumber) {
-      alert('Please fill out all required fields (ID Number, Contact Number)');
+    if (!firstName || !lastName || !email || !password || !idNumber || !contactNumber) {
+      alert('Please fill out all required fields.');
+      return;
+    }
+
+    if (password.length < 6) {
+      alert('Password must be at least 6 characters.');
       return;
     }
 
@@ -88,57 +93,45 @@ export default function GoogleSignup() {
 
     try {
       setLoading(true);
-      const res = await axios.post('http://localhost:5000/api/auth/google-signup', {
-        ...form,
-        recaptchaToken
-      }, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const res = await axios.post(
+        'http://localhost:5000/api/auth/google-signup',
+        { ...form, recaptchaToken },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('userId', res.data.userId);
       localStorage.setItem('role', res.data.role);
       localStorage.setItem('googleId', res.data.googleId);
 
-      alert('Google signup completed successfully!');
-      navigate('/patient-dashboard');
+      alert('Signup successful');
+      navigate(`/${res.data.role}-dashboard`);
     } catch (err) {
-      alert(err.response?.data?.error || 'Google signup failed');
+      alert(err.response?.data?.error || 'Signup failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-wrapper">
-      <div className="auth-left">
-        <div className="form-wrapper">
-          <h2>Complete Your Registration</h2>
-          <p className="google-info">
-            Welcome {form.firstName}! Please complete your profile to continue.
-          </p>
+    <div className="signup-wrapper">
+      <div className="signup-left">
+        <img
+          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg"
+          alt="Medical background"
+        />
+        <div className="image-overlay"></div>
+      </div>
 
-          <input
-            type="text"
-            placeholder="First Name *"
-            value={form.firstName}
-            disabled
-            style={{ backgroundColor: '#f5f5f5' }}
-          />
-          <input
-            type="text"
-            placeholder="Last Name *"
-            value={form.lastName}
-            disabled
-            style={{ backgroundColor: '#f5f5f5' }}
-          />
-          <input
-            type="email"
-            placeholder="Email Address *"
-            value={form.email}
-            disabled
-            style={{ backgroundColor: '#f5f5f5' }}
-          />
+      <div className="signup-right">
+        <div className="signup-form">
+          <h2>Complete Your Registration</h2>
+
+          {/* Personal Info */}
+          <input type="text" value={form.firstName} disabled style={{ backgroundColor: '#f5f5f5' }} />
+          <input type="text" value={form.lastName} disabled style={{ backgroundColor: '#f5f5f5' }} />
+          <input type="email" value={form.email} disabled style={{ backgroundColor: '#f5f5f5' }} />
+
           <input
             type="text"
             placeholder="Middle Name"
@@ -150,14 +143,18 @@ export default function GoogleSignup() {
             placeholder="ID Number *"
             value={form.idNumber}
             onChange={e => setForm({ ...form, idNumber: e.target.value })}
-            required
+          />
+          <input
+            type="password"
+            placeholder="Password *"
+            value={form.password}
+            onChange={e => setForm({ ...form, password: e.target.value })}
           />
           <input
             type="tel"
             placeholder="Contact Number *"
             value={form.contactNumber}
             onChange={e => setForm({ ...form, contactNumber: e.target.value })}
-            required
           />
           <input
             type="date"
@@ -195,51 +192,50 @@ export default function GoogleSignup() {
             onChange={e => setForm({ ...form, bloodType: e.target.value })}
           >
             <option value="">Blood Type</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
+            {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bt => (
+              <option key={bt} value={bt}>{bt}</option>
+            ))}
           </select>
+
+          {/* Emergency Contact */}
           <input
             type="text"
             placeholder="Emergency Contact Name"
             value={form.emergencyContact.name}
-            onChange={e => setForm({ 
-              ...form, 
-              emergencyContact: { ...form.emergencyContact, name: e.target.value }
-            })}
+            onChange={e =>
+              setForm({
+                ...form,
+                emergencyContact: { ...form.emergencyContact, name: e.target.value }
+              })
+            }
           />
           <input
             type="text"
             placeholder="Emergency Contact Relationship"
             value={form.emergencyContact.relationship}
-            onChange={e => setForm({ 
-              ...form, 
-              emergencyContact: { ...form.emergencyContact, relationship: e.target.value }
-            })}
+            onChange={e =>
+              setForm({
+                ...form,
+                emergencyContact: { ...form.emergencyContact, relationship: e.target.value }
+              })
+            }
           />
           <input
             type="tel"
             placeholder="Emergency Contact Phone"
             value={form.emergencyContact.phone}
-            onChange={e => setForm({ 
-              ...form, 
-              emergencyContact: { ...form.emergencyContact, phone: e.target.value }
-            })}
+            onChange={e =>
+              setForm({
+                ...form,
+                emergencyContact: { ...form.emergencyContact, phone: e.target.value }
+              })
+            }
           />
 
+          {/* Recaptcha */}
           <div className="recaptcha-container">
-            <Recaptcha
-              onVerify={handleRecaptchaVerify}
-              onExpire={handleRecaptchaExpire}
-            />
-            {recaptchaError && (
-              <p className="recaptcha-error">{recaptchaError}</p>
-            )}
+            <Recaptcha onVerify={handleRecaptchaVerify} onExpire={handleRecaptchaExpire} />
+            {recaptchaError && <p className="recaptcha-error">{recaptchaError}</p>}
           </div>
 
           <button onClick={handleSignup} disabled={loading}>
@@ -251,12 +247,6 @@ export default function GoogleSignup() {
             <span onClick={() => navigate('/')}>Login here</span>
           </p>
         </div>
-      </div>
-      <div className="auth-right">
-        <img
-          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg"
-          alt="Medical background"
-        />
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ passport.use(new GoogleStrategy({
 
     if (user) {
       console.log(`✅ Found user by Google ID: ${email}, role: ${user.role}`);
+      return done(null, user);
     }
 
     if (!user && email) {
@@ -25,30 +26,44 @@ passport.use(new GoogleStrategy({
         user.googleId = googleId;
         await user.save();
         console.log(`🔗 Linked Google ID to existing user: ${email}, role: ${user.role}`);
+        return done(null, user);
       }
     }
 
-    if (!user) {
-      // Instead of creating user, return a special object indicating new user
-      const newUserData = {
-        googleId,
-        email,
-        firstName,
-        lastName,
-        isNewUser: true
-      };
-      console.log(`🆕 New Google user detected: ${email}`);
-      return done(null, newUserData);
-    }
-
-    return done(null, user);
+    const newUserData = {
+      googleId,
+      email,
+      firstName,
+      lastName,
+      isNewUser: true
+    };
+    console.log(`🆕 New Google user detected: ${email}`);
+    return done(null, newUserData);
   } catch (err) {
     console.error('Google OAuth error:', err.message);
     return done(err, null);
   }
 }));
 
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser((id, done) => {
-  User.findById(id).then(user => done(null, user));
+passport.serializeUser((user, done) => {
+  if (user && user._id) {
+    done(null, user._id);
+  } else if (user && user.isNewUser) {
+    done(null, JSON.stringify(user));
+  } else {
+    done(new Error('Cannot serialize user: missing ID or new user flag'));
+  }
+});
+
+passport.deserializeUser((data, done) => {
+  try {
+    if (typeof data === 'string') {
+      const parsed = JSON.parse(data);
+      if (parsed.isNewUser) return done(null, parsed);
+    }
+
+    User.findById(data).then(user => done(null, user)).catch(err => done(err));
+  } catch (err) {
+    done(err);
+  }
 });

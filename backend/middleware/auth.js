@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 
-// ✅ JWT-based middleware
 const auth = (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -14,7 +13,6 @@ const auth = (req, res, next) => {
   }
 };
 
-// ✅ Passport session-based middleware
 const isAuthenticated = (req, res, next) => {
   if (req.isAuthenticated()) return next();
   res.status(401).json({ error: 'Unauthorized' });

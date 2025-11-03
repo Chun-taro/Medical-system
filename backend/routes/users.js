@@ -1,15 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
-const { getAllUsers, updateUserRole, getRoleByGoogleId } = require('../controllers/userController');
 
-// 🔍 GET all users (admin only)
+const {
+  getAllUsers,
+  updateUserRole,
+  getRoleByGoogleId,
+  getProfileById,
+  getProfile,
+  updateProfile,
+  uploadAvatar
+} = require('../controllers/userController');
+
 router.get('/', auth, getAllUsers);
-
-// 🔧 PUT: update user role (admin only)
 router.put('/:id/role', auth, updateUserRole);
-
-// 🔍 GET role by Google ID
 router.get('/role-by-google/:googleId', getRoleByGoogleId);
+router.get('/profile', auth, getProfile);
+router.get('/profile/:id', auth, getProfileById); // ✅ This is the route your frontend needs
+router.put('/profile', auth, updateProfile);
+router.post('/profile/avatar', auth, uploadAvatar);
 
 module.exports = router;
