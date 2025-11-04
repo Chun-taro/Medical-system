@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { FaCamera } from 'react-icons/fa';
 import PatientLayout from './PatientLayout';
 import './Profile.css';
+import { usePatient } from '../../context/PatientContext';
 
 export default function Profile() {
+  const { setPatient: setContextPatient } = usePatient(); // ✅ removed unused contextPatient
+
   const [patient, setPatient] = useState({});
   const [editForm, setEditForm] = useState({});
   const [showEditModal, setShowEditModal] = useState(false);
@@ -18,10 +21,13 @@ export default function Profile() {
       if (res.ok) {
         setPatient(data);
         setEditForm(data);
+        setContextPatient(data); // ✅ sync context
       }
     };
+
     fetchProfile();
-  }, []);
+  }, [setContextPatient]);
+
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
@@ -39,6 +45,7 @@ export default function Profile() {
     const data = await res.json();
     if (res.ok) {
       setPatient(prev => ({ ...prev, avatar: data.avatar }));
+      setContextPatient(prev => ({ ...prev, avatar: data.avatar })); // ✅ update context
       alert('Profile picture updated');
     }
   };
@@ -62,11 +69,13 @@ export default function Profile() {
     const data = await res.json();
     if (res.ok) {
       setPatient(data.user);
+      setContextPatient(data.user); // ✅ update context
       setShowEditModal(false);
       alert('Profile updated');
     }
   };
 
+  
   return (
     <PatientLayout>
       <div className="fb-profile-container">

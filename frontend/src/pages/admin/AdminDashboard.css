@@ -301,3 +301,27 @@
   border-left: 4px solid #9ca3af;
   opacity: 0.85;
 }
+.notification-bell {
+  margin-right: 1rem;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bell-icon {
+  font-size: 1.5rem;
+  color: #1e293b;
+}
+
+.notification-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-weight: bold;
+}

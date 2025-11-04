@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Recaptcha from '../components/Recaptcha';
 import MedicalLogo from './assets/MedicalLogo.png';
+import { usePatient } from '../context/PatientContext'; // ✅ import context
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [recaptchaToken, setRecaptchaToken] = useState('');
   const [recaptchaError, setRecaptchaError] = useState('');
   const navigate = useNavigate();
+  const { setPatient } = usePatient(); // ✅ use context
 
   const handleRecaptchaVerify = (token) => {
     setRecaptchaToken(token);
@@ -33,10 +35,21 @@ export default function Login() {
         recaptchaToken
       });
 
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('userId', res.data.userId);
-      localStorage.setItem('role', res.data.role);
-      navigate(res.data.role === 'admin' ? '/admin-dashboard' : '/patient-dashboard');
+      const { token, userId, role } = res.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('role', role);
+
+      // ✅ Fetch profile and update context
+      const profileRes = await axios.get('http://localhost:5000/api/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (profileRes.status === 200) {
+        setPatient(profileRes.data); // ✅ sync context
+      }
+
+      navigate(role === 'admin' ? '/admin-dashboard' : '/patient-dashboard');
     } catch (err) {
       alert(err.response?.data?.error || 'Login failed');
     }
@@ -46,11 +59,10 @@ export default function Login() {
     <div className="auth-wrapper">
       {/* Left side image */}
       <div className="auth-left">
-        <img 
-          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg" 
-          alt="Medical background" 
+        <img
+          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg"
+          alt="Medical background"
         />
-        {/* Optional overlay for gradient effect */}
         <div className="image-overlay"></div>
       </div>
 
@@ -58,25 +70,25 @@ export default function Login() {
       <div className="auth-right">
         <div className="form-wrapper">
           <img
-  src={MedicalLogo}
-  alt="BukSU Medical Logo"
-  style={{
-    width: '200px',
-    height: 'auto',
-    display: 'block',
-    margin: '0 auto'
-  }}
-/>
+            src={MedicalLogo}
+            alt="BukSU Medical Logo"
+            style={{
+              width: '200px',
+              height: 'auto',
+              display: 'block',
+              margin: '0 auto'
+            }}
+          />
           <h2 style={{
-  fontSize: '2.5rem',
-  color: '#0077cc',
-  textAlign: 'center',
-  margin: '1rem 0',
-  fontWeight: '600',
-  fontFamily: 'Segoe UI, sans-serif'
-}}>
-  BukSU Medical Clinic
-</h2>
+            fontSize: '2.5rem',
+            color: '#0077cc',
+            textAlign: 'center',
+            margin: '1rem 0',
+            fontWeight: '600',
+            fontFamily: 'Segoe UI, sans-serif'
+          }}>
+            BukSU Medical Clinic
+          </h2>
 
           <a href="http://localhost:5000/api/auth/google">
             <button className="google-button">Continue with Google</button>
@@ -102,9 +114,8 @@ export default function Login() {
             onChange={e => setForm({ ...form, password: e.target.value })}
           />
 
-          {/* reCAPTCHA */}
           <div className="recaptcha-container">
-            <Recaptcha 
+            <Recaptcha
               onVerify={handleRecaptchaVerify}
               onExpire={handleRecaptchaExpire}
             />

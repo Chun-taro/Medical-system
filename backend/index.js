@@ -5,30 +5,41 @@ const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
+const http = require('http');
+const socketIo = require('socket.io');
 
 const authRoutes = require('./routes/auth');
 const appointmentRoutes = require('./routes/appointments');
-const profileRoutes = require('./routes/profile'); // includes avatar upload
+const profileRoutes = require('./routes/profile');
 const userRoutes = require('./routes/users');
 const resetRoutes = require('./routes/reset');
 const medicineRoutes = require('./routes/medicines');
+const notificationRoutes = require('./routes/notification'); // ✅ NEW
 
 require('./passport'); // Passport strategy config
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, { cors: { origin: '*' } });
+
+// ✅ Inject io into every request
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 // 🌐 Middleware
 app.use(cors());
 app.use(express.json());
 
-// 🛡️ Session (required for Passport login sessions)
+// 🛡️ Session
 app.use(session({
   secret: process.env.SESSION_SECRET || 'MySecretKey',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // set to true if using HTTPS
-    maxAge: 1000 * 60 * 60 * 24 // 1 day
+    secure: false,
+    maxAge: 1000 * 60 * 60 * 24
   }
 }));
 
@@ -42,10 +53,11 @@ app.use('/uploads', express.static('uploads'));
 // 📦 Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
-app.use('/api/profile', profileRoutes); // ✅ avatar upload handled here
+app.use('/api/profile', profileRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/medicines', medicineRoutes);
+app.use('/api/notifications', notificationRoutes); // ✅ NEW
 
 // 🌍 MongoDB connection
 const uri = process.env.MONGO_URI;
@@ -59,7 +71,7 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(uri)
   .then(() => {
     console.log('✅ Connected to MongoDB Atlas');
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
   })
@@ -89,21 +101,16 @@ app.get('/api/auth/google/callback',
       }
 
       if (user.isNewUser) {
-        console.log(`🆕 New Google user needs to complete signup: ${user.email}`);
         const signupUrl = new URL('http://localhost:3000/google-signup');
         signupUrl.searchParams.set('googleId', user.googleId);
         signupUrl.searchParams.set('email', user.email);
         signupUrl.searchParams.set('firstName', user.firstName);
         signupUrl.searchParams.set('lastName', user.lastName);
-        console.log('🔄 Redirecting to Google signup:', signupUrl.toString());
         return res.redirect(signupUrl.toString());
       }
 
-      console.log(`🔐 Logging in existing user ${user.email} with role: ${user.role}`);
-
       const validRoles = ['admin', 'patient', 'doctor', 'nurse'];
       if (!validRoles.includes(user.role)) {
-        console.warn(`⚠️ Invalid role detected for user ${user.email}: ${user.role}`);
         return res.redirect('http://localhost:3000/oauth-failure');
       }
 
@@ -119,12 +126,6 @@ app.get('/api/auth/google/callback',
       redirectUrl.searchParams.set('userId', user._id.toString());
       redirectUrl.searchParams.set('googleId', user.googleId);
 
-      console.log('✅ Google login successful:', {
-        email: user.email,
-        role: user.role,
-        redirect: redirectUrl.toString()
-      });
-
       res.redirect(redirectUrl.toString());
     } catch (err) {
       console.error('🔥 Google OAuth callback error:', err.message);
@@ -133,7 +134,7 @@ app.get('/api/auth/google/callback',
   }
 );
 
-// 🧪 Debug route (protected)
+// 🧪 Debug route
 const { auth } = require('./middleware/auth');
 const User = require('./models/User');
 
@@ -143,7 +144,6 @@ app.get('/api/debug/profile/:id', auth, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (err) {
-    console.error('❌ Error fetching profile by ID:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -7,17 +7,19 @@ import {
   Users,
   BarChart3,
   Package,
-  LogOut,
   Stethoscope,
+  Bell,
 } from 'lucide-react';
+import { io } from 'socket.io-client';
+import { toast } from 'react-toastify';
 
 export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // ✅ Load admin data from localStorage
   const admin = {
     firstName: (localStorage.getItem('firstName') || 'Admin').trim(),
     lastName: (localStorage.getItem('lastName') || '').trim(),
@@ -31,15 +33,39 @@ export default function AdminLayout({ children }) {
     navigate('/', { replace: true });
   };
 
-  // ✅ Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:5000/api/notifications/unread', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok) setUnreadCount(data.count);
+      } catch (err) {
+        console.error('Error fetching unread notifications:', err);
+      }
+    };
+
+    fetchUnreadCount();
+
+    const socket = io('http://localhost:5000');
+    socket.on('newAppointment', (data) => {
+      toast.info(data.message);
+      setUnreadCount((prev) => prev + 1);
+    });
+
+    return () => socket.disconnect();
   }, []);
 
   const getInitials = (first, last) =>
@@ -56,59 +82,64 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
       <aside className="sidebar">
-        <h3 className="sidebar-title">Admin Panel</h3>
-        <ul className="menu-list">
-          {menuItems.map((item) => (
-            <li
-              key={item.name}
-              className={location.pathname === item.path ? 'active' : ''}
-              onClick={() => navigate(item.path)}
-            >
-              <span className="menu-icon">{item.icon}</span>
-              <span className="menu-text">{item.name}</span>
-            </li>
-          ))}
-        </ul>
-
-        <button onClick={handleLogout} className="logout-button">
-          <LogOut size={18} />
-          <span>Logout</span>
-        </button>
+        <div className="sidebar-top">
+          <h3 className="sidebar-title">Admin Menu</h3>
+          <ul className="sidebar-menu">
+            {menuItems.map((item) => (
+              <li
+                key={item.name}
+                className={location.pathname === item.path ? 'active' : ''}
+                onClick={() => navigate(item.path)}
+              >
+                {item.icon}
+                <span>{item.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </aside>
 
-      {/* Main Content */}
       <main className="main-content">
         <nav className="navbar">
-          <strong>Welcome, {admin.firstName} {admin.lastName}</strong>
+          <div className="navbar-left">
+            <h1 className="fb-name">{admin.firstName} {admin.lastName}</h1>
+          </div>
 
-          {/* Profile Icon Dropdown */}
-          <div className="profile-menu" ref={dropdownRef}>
-            {admin.profileImage ? (
-              <img
-                src={admin.profileImage}
-                alt="Profile"
-                className="profile-icon"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              />
-            ) : (
-              <div
-                className="profile-initials"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                {getInitials(admin.firstName, admin.lastName)}
-              </div>
-            )}
+          <div className="navbar-right">
+            {/* ✅ Notification Bell */}
+            <div className="notification-bell" onClick={() => navigate('/admin-notifications')}>
+              <Bell className="bell-icon" />
+              {unreadCount > 0 && (
+                <span className="notification-count">{unreadCount}</span>
+              )}
+            </div>
 
-            {dropdownOpen && (
-              <div className="dropdown">
-                <button onClick={() => navigate('/AdminProfile')}>
-                  View Profile
-                </button>
-                <button onClick={handleLogout}>Logout</button>
-              </div>
-            )}
+            {/* Profile Dropdown */}
+            <div className="profile-menu" ref={dropdownRef}>
+              {admin.profileImage ? (
+                <img
+                  src={admin.profileImage}
+                  alt="Profile"
+                  className="profile-icon"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                />
+              ) : (
+                <div
+                  className="profile-initials"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
+                  {getInitials(admin.firstName, admin.lastName)}
+                </div>
+              )}
+
+              {dropdownOpen && (
+                <div className="dropdown">
+                  <button onClick={() => navigate('/AdminProfile')}>View Profile</button>
+                  <button onClick={handleLogout}>Logout</button>
+                </div>
+              )}
+            </div>
           </div>
         </nav>
 

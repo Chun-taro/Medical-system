@@ -57,13 +57,18 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser((data, done) => {
   try {
-    if (typeof data === 'string') {
+    // Only parse if it looks like JSON
+    if (typeof data === 'string' && data.startsWith('{')) {
       const parsed = JSON.parse(data);
       if (parsed.isNewUser) return done(null, parsed);
     }
 
-    User.findById(data).then(user => done(null, user)).catch(err => done(err));
+    // Otherwise treat as MongoDB ObjectId
+    User.findById(data)
+      .then(user => done(null, user))
+      .catch(err => done(err));
   } catch (err) {
+    console.error('Deserialization error:', err.message);
     done(err);
   }
 });
