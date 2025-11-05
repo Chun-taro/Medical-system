@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Recaptcha from '../components/Recaptcha';
+import backgroundImage from './assets/building.png'; // ✅ Local PNG image
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -92,14 +93,21 @@ export default function Signup() {
   };
 
   return (
-    <div className="signup-wrapper">
-      <div className="signup-left">
-        <img
-          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg"
-          alt="Medical background"
-        />
-        <div className="image-overlay"></div>
-      </div>
+    <div
+      className="signup-wrapper"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative'
+      }}
+    >
+      <div className="signup-overlay"></div>
 
       <div className="signup-right">
         <div className="signup-form">
@@ -110,70 +118,23 @@ export default function Signup() {
           </a>
 
           {/* Personal Info */}
-          <input
-            type="text"
-            placeholder="First Name *"
-            value={form.firstName}
-            onChange={e => setForm({ ...form, firstName: e.target.value })}
-          />
-          <input
-            type="text"
-            placeholder="Last Name *"
-            value={form.lastName}
-            onChange={e => setForm({ ...form, lastName: e.target.value })}
-          />
-          <input
-            type="text"
-            placeholder="Middle Name"
-            value={form.middleName}
-            onChange={e => setForm({ ...form, middleName: e.target.value })}
-          />
-          <input
-            type="text"
-            placeholder="ID Number *"
-            value={form.idNumber}
-            onChange={e => setForm({ ...form, idNumber: e.target.value })}
-          />
-          <input
-            type="email"
-            placeholder="Email Address *"
-            value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
-          />
-          <input
-            type="password"
-            placeholder="Password *"
-            value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })}
-          />
-          <input
-            type="tel"
-            placeholder="Contact Number *"
-            value={form.contactNumber}
-            onChange={e => setForm({ ...form, contactNumber: e.target.value })}
-          />
+          <input type="text" placeholder="First Name *" value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })} />
+          <input type="text" placeholder="Last Name *" value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} />
+          <input type="text" placeholder="Middle Name" value={form.middleName} onChange={e => setForm({ ...form, middleName: e.target.value })} />
+          <input type="text" placeholder="ID Number *" value={form.idNumber} onChange={e => setForm({ ...form, idNumber: e.target.value })} />
+          <input type="email" placeholder="Email Address *" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+          <input type="password" placeholder="Password *" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+          <input type="tel" placeholder="Contact Number *" value={form.contactNumber} onChange={e => setForm({ ...form, contactNumber: e.target.value })} />
+          <input type="date" placeholder="Date of Birth" value={form.birthday} onChange={e => setForm({ ...form, birthday: e.target.value })} />
 
-          <input
-            type="date"
-            placeholder="Date of Birth"
-            value={form.birthday}
-            onChange={e => setForm({ ...form, birthday: e.target.value })}
-          />
-
-          <select
-            value={form.sex}
-            onChange={e => setForm({ ...form, sex: e.target.value })}
-          >
+          <select value={form.sex} onChange={e => setForm({ ...form, sex: e.target.value })}>
             <option value="">Select Gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
             <option value="other">Other</option>
           </select>
 
-          <select
-            value={form.civilStatus}
-            onChange={e => setForm({ ...form, civilStatus: e.target.value })}
-          >
+          <select value={form.civilStatus} onChange={e => setForm({ ...form, civilStatus: e.target.value })}>
             <option value="">Civil Status</option>
             <option value="single">Single</option>
             <option value="married">Married</option>
@@ -181,17 +142,9 @@ export default function Signup() {
             <option value="divorced">Divorced</option>
           </select>
 
-          <input
-            type="text"
-            placeholder="Home Address"
-            value={form.homeAddress}
-            onChange={e => setForm({ ...form, homeAddress: e.target.value })}
-          />
+          <input type="text" placeholder="Home Address" value={form.homeAddress} onChange={e => setForm({ ...form, homeAddress: e.target.value })} />
 
-          <select
-            value={form.bloodType}
-            onChange={e => setForm({ ...form, bloodType: e.target.value })}
-          >
+          <select value={form.bloodType} onChange={e => setForm({ ...form, bloodType: e.target.value })}>
             <option value="">Blood Type</option>
             {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bt => (
               <option key={bt} value={bt}>{bt}</option>
@@ -199,39 +152,9 @@ export default function Signup() {
           </select>
 
           {/* Emergency Contact */}
-          <input
-            type="text"
-            placeholder="Emergency Contact Name"
-            value={form.emergencyContact.name}
-            onChange={e =>
-              setForm({
-                ...form,
-                emergencyContact: { ...form.emergencyContact, name: e.target.value }
-              })
-            }
-          />
-          <input
-            type="text"
-            placeholder="Emergency Contact Relationship"
-            value={form.emergencyContact.relationship}
-            onChange={e =>
-              setForm({
-                ...form,
-                emergencyContact: { ...form.emergencyContact, relationship: e.target.value }
-              })
-            }
-          />
-          <input
-            type="tel"
-            placeholder="Emergency Contact Phone"
-            value={form.emergencyContact.phone}
-            onChange={e =>
-              setForm({
-                ...form,
-                emergencyContact: { ...form.emergencyContact, phone: e.target.value }
-              })
-            }
-          />
+          <input type="text" placeholder="Emergency Contact Name" value={form.emergencyContact.name} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, name: e.target.value } })} />
+          <input type="text" placeholder="Emergency Contact Relationship" value={form.emergencyContact.relationship} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, relationship: e.target.value } })} />
+          <input type="tel" placeholder="Emergency Contact Phone" value={form.emergencyContact.phone} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, phone: e.target.value } })} />
 
           {/* Recaptcha */}
           <div className="recaptcha-container">
@@ -244,8 +167,7 @@ export default function Signup() {
           </button>
 
           <p>
-            Already have an account?{' '}
-            <span onClick={() => navigate('/')}>Login here</span>
+            Already have an account? <span onClick={() => navigate('/')}>Login here</span>
           </p>
         </div>
       </div>

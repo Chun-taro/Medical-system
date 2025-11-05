@@ -37,6 +37,16 @@ export default function ResetPassword() {
             onChange={e => setNewPassword(e.target.value)}
           />
           <button onClick={handleReset}>Reset Password</button>
+
+          {/* ✅ Back to Login link */}
+          <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: '#555' }}>
+            <span
+              onClick={() => navigate('/')}
+              style={{ color: '#0077cc', cursor: 'pointer', textDecoration: 'underline' }}
+            >
+              Back to Login
+            </span>
+          </p>
         </div>
       </div>
       <div className="auth-right">

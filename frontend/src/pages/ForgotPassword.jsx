@@ -1,12 +1,14 @@
 import './Auth.css';
 import { useState } from 'react';
 import axios from 'axios';
+import logo from './assets/logo.png';
+import backgroundImage from './assets/building.png'; // ✅ Local background
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [token, setToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [step, setStep] = useState(1); // 1 = email, 2 = token, 3 = reset
+  const [step, setStep] = useState(1);
   const [message, setMessage] = useState('');
 
   const handleSendToken = async () => {
@@ -47,20 +49,24 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="auth-wrapper">
-      {/* Left side: image */}
-      <div className="auth-left">
-        <img
-          src="https://buksu.edu.ph/wp-content/uploads/2020/11/DSC_6474.jpg"
-          alt="Background"
-        />
-        <div className="image-overlay"></div>
-      </div>
+    <div
+      className="auth-wrapper"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="image-overlay"></div>
 
-      {/* Right side: form */}
       <div className="auth-right">
         <div className="form-wrapper">
-          <h2>Reset Password</h2>
+          <div className="form-header center-align">
+            <img src={logo} alt="BukSU Medical Logo" className="clinic-logo" />
+            <h2 className="clinic-title">Reset Password</h2>
+            <hr className="form-divider" />
+          </div>
 
           {step === 1 && (
             <>
@@ -99,6 +105,10 @@ export default function ForgotPassword() {
           )}
 
           {message && <p className="info-message">{message}</p>}
+
+          <p className="back-link">
+            <span onClick={() => window.location.href = '/'}>Back to Login</span>
+          </p>
         </div>
       </div>
     </div>
