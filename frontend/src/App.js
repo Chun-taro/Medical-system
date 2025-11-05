@@ -22,21 +22,22 @@ import Reports from './pages/admin/Reports';
 import ConsultationPage from './pages/admin/ConsultationPage';
 import Inventory from './pages/admin/Inventory';
 import AdminProfile from './pages/admin/AdminProfile';
-import AdminNotifications from './pages/admin/AdminNotifications'; // ✅ NEW
+import AdminNotifications from './pages/admin/AdminNotifications';
 
 // Patient pages
 import PatientDashboard from './pages/patient/PatientDashboard';
 import MyAppointments from './pages/patient/MyAppointments';
 import BookAppointment from './pages/patient/BookAppointment';
 import Profile from './pages/patient/Profile';
-import Notifications from './pages/patient/Notifications'; // ✅ NEW
+import Notifications from './pages/patient/Notifications';
 
 function App() {
   return (
     <BrowserRouter>
       <PatientProvider>
         <Routes>
-          {/* Auth routes */}
+
+          {/* 🔐 Auth Routes */}
           <Route path="/" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -47,7 +48,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardRedirect />} />
           <Route path="/unauthorized" element={<p>Access denied.</p>} />
 
-          {/* Admin routes */}
+          {/* 🛠 Admin Routes */}
           <Route
             path="/admin-dashboard"
             element={
@@ -111,9 +112,9 @@ function App() {
                 <AdminNotifications />
               </ProtectedRoute>
             }
-          /> {/* ✅ NEW */}
+          />
 
-          {/* Patient routes */}
+          {/* 🩺 Patient Routes */}
           <Route
             path="/patient-dashboard"
             element={
@@ -153,7 +154,8 @@ function App() {
                 <Notifications />
               </ProtectedRoute>
             }
-          /> {/* ✅ NEW */}
+          />
+
         </Routes>
       </PatientProvider>
     </BrowserRouter>

@@ -16,14 +16,21 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
+// 📅 Booking and patient routes
 router.post('/book', auth, bookAppointment);
 router.get('/patient/:patientId', auth, getPatientAppointments);
+router.get('/my', auth, getMyAppointments);
+
+// 🛠 Admin routes
 router.get('/', auth, getAllAppointments);
 router.delete('/:id', auth, deleteAppointment);
 router.patch('/:id/approve', auth, approveAppointment);
-router.get('/my', auth, getMyAppointments);
+
+// 🩺 Consultation routes
 router.patch('/:id/start', auth, startConsultation);
 router.patch('/:id/complete', auth, completeConsultation);
+
+// 📊 Reporting and analytics
 router.get('/reports', auth, generateReports);
 router.get('/consultations', auth, getConsultations);
 router.get('/consultations/:id', auth, getConsultationById);

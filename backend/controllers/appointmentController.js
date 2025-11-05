@@ -1,10 +1,17 @@
 const Appointment = require('../models/Appointment');
+const User = require('../models/User');
+const { sendNotification } = require('../utils/sendNotification');
 
-// Book appointment
+// 📌 Book appointment
 const bookAppointment = async (req, res) => {
   try {
-    if (req.user.role !== 'patient') {
+    if (!req.user || req.user.role !== 'patient') {
       return res.status(403).json({ error: 'Only patients can book appointments' });
+    }
+
+    const { appointmentDate, purpose } = req.body;
+    if (!appointmentDate || !purpose) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
     const appointment = new Appointment({
@@ -13,60 +20,105 @@ const bookAppointment = async (req, res) => {
     });
 
     await appointment.save();
+
+    // Notify admin
+    const admin = await User.findOne({ role: 'admin' });
+    if (admin) {
+      sendNotification({
+        userId: admin._id,
+        status: 'pending',
+        message: `New appointment booked by ${req.user.firstName || 'a patient'}`,
+        recipientType: 'admin'
+      });
+    }
+
+    // Notify patient
+    sendNotification({
+      userId: req.user.userId,
+      status: 'pending',
+      message: 'Your appointment request has been submitted and is pending approval.',
+      recipientType: 'patient'
+    });
+
     res.status(201).json({ message: 'Appointment booked successfully' });
   } catch (err) {
+    console.error('❌ Booking error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Get appointments for patient
-const getPatientAppointments = async (req, res) => {
+// 📌 Get current patient's appointments
+const getMyAppointments = async (req, res) => {
   try {
-    if (
-      req.user.role !== 'patient' ||
-      req.user.userId.toString() !== req.params.patientId
-    ) {
+    if (req.user.role !== 'patient') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const appointments = await Appointment.find({ patientId: req.params.patientId });
+    const page = parseInt(req.query.page, 10) || 0;
+    const limit = parseInt(req.query.limit, 10) || 10;
+
+    const appointments = await Appointment.find({ patientId: req.user.userId })
+      .select('appointmentDate status purpose typeOfVisit diagnosis consultationCompletedAt')
+      .sort({ appointmentDate: -1 })
+      .skip(page * limit)
+      .limit(limit)
+      .lean();
+
     res.json(appointments);
   } catch (err) {
+    console.error('❌ Fetch my appointments error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Get all appointments (admin only)
+// 📌 Get appointments for a specific patient
+const getPatientAppointments = async (req, res) => {
+  try {
+    const requestedPatientId = req.params.patientId;
+    const isAdmin = req.user.role === 'admin';
+    const isSelf = String(req.user.userId) === String(requestedPatientId);
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const appointments = await Appointment.find({ patientId: requestedPatientId })
+      .select('appointmentDate status purpose typeOfVisit diagnosis consultationCompletedAt')
+      .sort({ appointmentDate: -1 })
+      .lean();
+
+    res.json(appointments);
+  } catch (err) {
+    console.error('❌ Patient appointments error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// 📌 Get all appointments (admin only)
 const getAllAppointments = async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const appointments = await Appointment.find().sort({ appointmentDate: -1 });
+    const page = parseInt(req.query.page, 10) || 0;
+    const limit = parseInt(req.query.limit, 10) || 20;
+
+    const appointments = await Appointment.find()
+      .select('firstName lastName appointmentDate status purpose typeOfVisit')
+      .sort({ appointmentDate: -1 })
+      .skip(page * limit)
+      .limit(limit)
+      .lean();
+
     res.json(appointments);
   } catch (err) {
+    console.error('❌ Admin fetch error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Delete appointment
-const deleteAppointment = async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    const deleted = await Appointment.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'Appointment not found' });
-
-    res.json({ message: 'Appointment deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Approve appointment
+// 📌 Approve appointment
 const approveAppointment = async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
@@ -81,27 +133,21 @@ const approveAppointment = async (req, res) => {
 
     if (!updated) return res.status(404).json({ error: 'Appointment not found' });
 
+    sendNotification({
+      userId: updated.patientId,
+      status: 'approved',
+      message: 'Your appointment has been approved',
+      recipientType: 'patient'
+    });
+
     res.json({ message: 'Appointment approved', appointment: updated });
   } catch (err) {
+    console.error('❌ Approval error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Get current patient's appointments
-const getMyAppointments = async (req, res) => {
-  try {
-    if (req.user.role !== 'patient') {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    const appointments = await Appointment.find({ patientId: req.user.userId }).sort({ appointmentDate: -1 });
-    res.json(appointments);
-  } catch (err) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Start consultation
+// 📌 Start consultation
 const startConsultation = async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
@@ -114,13 +160,21 @@ const startConsultation = async (req, res) => {
     appointment.status = 'in-consultation';
     await appointment.save();
 
+    sendNotification({
+      userId: appointment.patientId,
+      status: 'in-consultation',
+      message: 'Your consultation has started',
+      recipientType: 'patient'
+    });
+
     res.json({ message: 'Consultation started', appointment });
   } catch (err) {
+    console.error('❌ Start consultation error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Complete consultation
+// 📌 Complete consultation
 const completeConsultation = async (req, res) => {
   try {
     const updateFields = {
@@ -134,29 +188,69 @@ const completeConsultation = async (req, res) => {
       { $set: updateFields },
       { new: true }
     );
+
+    if (!appointment) return res.status(404).json({ error: 'Appointment not found' });
+
+    // Patient notification
+    sendNotification({
+      userId: appointment.patientId,
+      status: 'completed',
+      message: 'Your consultation has been completed',
+      recipientType: 'patient'
+    });
+
+    // Admin notification
+    const admin = await User.findOne({ role: 'admin' });
+    if (admin) {
+      sendNotification({
+        userId: admin._id,
+        status: 'completed',
+        message: `Consultation completed for patient ${appointment.firstName || ''} ${appointment.lastName || ''}`.trim(),
+        recipientType: 'admin'
+      });
+    }
+
     res.json(appointment);
   } catch (err) {
+    console.error('❌ Completion error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// Generate reports
+// 📌 Delete appointment
+const deleteAppointment = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const deleted = await Appointment.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Appointment not found' });
+
+    res.json({ message: 'Appointment deleted successfully' });
+  } catch (err) {
+    console.error('❌ Delete error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// 📌 Generate reports
 const generateReports = async (req, res) => {
   try {
-    const appointments = await Appointment.find();
+    const appointments = await Appointment.find().lean();
 
     const totalAppointments = appointments.length;
     const approved = appointments.filter(app => app.status === 'approved').length;
     const rejected = appointments.filter(app => app.status === 'rejected').length;
     const completed = appointments.filter(app => app.status === 'completed').length;
 
-    const scheduled = appointments.filter(app => app.type === 'scheduled').length;
-    const walkIn = appointments.filter(app => app.type === 'walk-in').length;
+    const scheduled = appointments.filter(app => app.typeOfVisit === 'scheduled').length;
+    const walkIn = appointments.filter(app => app.typeOfVisit === 'walk-in').length;
 
     const topDiagnosis = findMostCommon(appointments.map(app => app.diagnosis));
     const topComplaint = findMostCommon(appointments.map(app => app.purpose));
     const referralRate = Math.round(
-      (appointments.filter(app => app.referredToPhysician).length / totalAppointments) * 100
+      (appointments.filter(app => app.referredToPhysician).length / (totalAppointments || 1)) * 100
     );
 
     res.json({
@@ -171,36 +265,43 @@ const generateReports = async (req, res) => {
       referralRate
     });
   } catch (err) {
+    console.error('❌ Report error:', err.message);
     res.status(500).json({ error: 'Failed to generate report' });
   }
 };
 
-// Get consultations
+// 📌 Get consultations (all with diagnosis)
 const getConsultations = async (req, res) => {
   try {
     const consultations = await Appointment.find({ diagnosis: { $ne: null } })
-      .select('firstName lastName appointmentDate consultationCompletedAt chiefComplaint diagnosis management bloodPressure temperature heartRate oxygenSaturation bmi medicinesPrescribed referredToPhysician physicianName firstAidDone firstAidWithin30Mins')
-      .sort({ consultationCompletedAt: -1 });
+      .select(
+        'firstName lastName appointmentDate consultationCompletedAt chiefComplaint diagnosis management bloodPressure temperature heartRate oxygenSaturation bmi medicinesPrescribed referredToPhysician physicianName firstAidDone firstAidWithin30Mins'
+      )
+      .sort({ consultationCompletedAt: -1 })
+      .lean();
+
     res.json(consultations);
   } catch (err) {
+    console.error('❌ Consultations error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };
 
-// Get consultation by ID
+// 📌 Get consultation by ID
 const getConsultationById = async (req, res) => {
   try {
-    const consultation = await Appointment.findById(req.params.id);
+    const consultation = await Appointment.findById(req.params.id).lean();
     if (!consultation || !consultation.diagnosis) {
       return res.status(404).json({ error: 'Consultation not found' });
     }
     res.json(consultation);
   } catch (err) {
+    console.error('❌ Consultation ID error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };
 
-// Helper function
+// 📌 Helper: most common value
 function findMostCommon(arr) {
   const freq = {};
   arr.forEach(item => {
@@ -212,13 +313,13 @@ function findMostCommon(arr) {
 
 module.exports = {
   bookAppointment,
+  getMyAppointments,
   getPatientAppointments,
   getAllAppointments,
-  deleteAppointment,
   approveAppointment,
-  getMyAppointments,
   startConsultation,
   completeConsultation,
+  deleteAppointment,
   generateReports,
   getConsultations,
   getConsultationById

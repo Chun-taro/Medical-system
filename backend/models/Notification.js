@@ -8,16 +8,21 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['appointment'], // extendable for other types
-    required: true
+    enum: ['appointment'],
+    default: 'appointment'
   },
   status: {
     type: String,
-    enum: ['approved', 'declined', 'rescheduled'],
+    enum: ['pending', 'approved', 'declined', 'rescheduled', 'completed'],
     required: true
   },
   message: {
     type: String,
+    required: true
+  },
+  recipientType: {
+    type: String,
+    enum: ['admin', 'patient'],
     required: true
   },
   read: {

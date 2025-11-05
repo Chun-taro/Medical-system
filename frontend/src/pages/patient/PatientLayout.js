@@ -11,6 +11,8 @@ export default function PatientLayout({ children }) {
   const dropdownRef = useRef(null);
   const { patient, setPatient } = usePatient();
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const user = {
     firstName: patient?.firstName || 'Patient',
     middleName: patient?.middleName || '',
@@ -24,7 +26,22 @@ export default function PatientLayout({ children }) {
     navigate('/', { replace: true });
   };
 
+  // fetch unread notifications
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/notifications/unread', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) setUnreadCount(data.unreadCount);
+    } catch (err) {
+      console.error('Error fetching unread count:', err);
+    }
+  };
+
   useEffect(() => {
+    fetchUnreadCount();
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
@@ -62,16 +79,17 @@ export default function PatientLayout({ children }) {
 
       <main className="main-content">
         <nav className="navbar">
-  <div className="navbar-left">
-    <h1 className="fb-name">{user.firstName} {user.middleName} {user.lastName}</h1>
-  </div>
+          <div className="navbar-left">
+            <h1 className="fb-name">{user.firstName} {user.middleName} {user.lastName}</h1>
+          </div>
 
-  <div className="navbar-right">
-    <div className="notification-wrapper" onClick={() => navigate('/patient-notifications')}>
-  <Bell className="notification-icon" />
-  <span className="notification-badge">3</span>
-</div>
-
+          <div className="navbar-right">
+            <div className="notification-wrapper" onClick={() => navigate('/patient-notifications')}>
+              <Bell className="notification-icon" />
+              {unreadCount > 0 && (
+                <span className="notification-badge">{unreadCount}</span>
+              )}
+            </div>
 
             <div className="profile-menu" ref={dropdownRef}>
               {user.profileImage ? (
