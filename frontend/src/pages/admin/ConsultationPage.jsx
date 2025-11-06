@@ -146,14 +146,14 @@ export default function ConsultationPage() {
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    alert('✅ Consultation saved and inventory updated');
+    alert(' Consultation saved and inventory updated');
     setSelectedAppointment(null);
     setShowModal(false);
     fetchApprovedAppointments();
     fetchMedicines();
   } catch (err) {
     console.error('Error saving consultation:', err);
-    alert(err.response?.data?.error || '❌ Failed to save consultation or deduct inventory');
+    alert(err.response?.data?.error || ' Failed to save consultation or deduct inventory');
   }
 };
 
