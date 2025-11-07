@@ -119,65 +119,68 @@ export default function Inventory() {
         <p>Track capsules and expiry dates. Dispense to walk-in patients.</p>
 
         {/* Add Medicine */}
-        <form className="medicine-form" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Medicine Name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="number"
-            name="quantityInStock"
-            placeholder="Capsules in Stock"
-            value={form.quantityInStock}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="unit"
-            placeholder="Unit (e.g. pcs, bottles)"
-            value={form.unit}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="date"
-            name="expiryDate"
-            value={form.expiryDate}
-            onChange={handleChange}
-          />
-          <button type="submit" disabled={submitting}>
-            {submitting ? 'Adding...' : 'Add Medicine'}
-          </button>
-        </form>
+<form className="medicine-form" onSubmit={handleSubmit}>
+  <input
+    type="text"
+    name="name"
+    placeholder="Medicine Name"
+    value={form.name}
+    onChange={handleChange}
+    required
+  />
+  <input
+    type="number"
+    name="quantityInStock"
+    placeholder="Capsules in Stock"
+    value={form.quantityInStock}
+    onChange={handleChange}
+    required
+    min="0"
+  />
+  <input
+    type="text"
+    name="unit"
+    placeholder="Unit (e.g. pcs, bottles)"
+    value={form.unit}
+    onChange={handleChange}
+    required
+  />
+  <input
+    type="date"
+    name="expiryDate"
+    value={form.expiryDate}
+    onChange={handleChange}
+  />
+  <button type="submit" disabled={submitting}>
+    {submitting ? 'Adding...' : 'Add Medicine'}
+  </button>
+</form>
 
-        {/* Dispense Medicine */}
-        <form className="dispense-form" onSubmit={handleDispense}>
-          <select
-            value={dispenseForm.medId}
-            onChange={e => setDispenseForm({ ...dispenseForm, medId: e.target.value })}
-            required
-          >
-            <option value="">Select Medicine</option>
-            {medicines.map(med => (
-              <option key={med._id} value={med._id}>
-                {med.name} ({med.quantityInStock} left)
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            placeholder="Quantity to dispense"
-            value={dispenseForm.quantity}
-            onChange={e => setDispenseForm({ ...dispenseForm, quantity: e.target.value })}
-            required
-          />
-          <button type="submit">Dispense</button>
-        </form>
+{/* Dispense Medicine */}
+<form className="dispense-form" onSubmit={handleDispense}>
+  <select
+    value={dispenseForm.medId}
+    onChange={e => setDispenseForm({ ...dispenseForm, medId: e.target.value })}
+    required
+  >
+    <option value="">Select Medicine</option>
+    {medicines.map(med => (
+      <option key={med._id} value={med._id}>
+        {med.name} ({med.quantityInStock} left)
+      </option>
+    ))}
+  </select>
+  <input
+    type="number"
+    placeholder="Quantity to dispense"
+    value={dispenseForm.quantity}
+    onChange={e => setDispenseForm({ ...dispenseForm, quantity: e.target.value })}
+    required
+    min="1"
+  />
+  <button type="submit">Dispense</button>
+</form>
+
 
         {error && <p style={{ color: 'red' }}>{error}</p>}
 

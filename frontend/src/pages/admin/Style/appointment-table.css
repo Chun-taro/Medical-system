@@ -64,30 +64,61 @@
 
 .tab-header {
   display: flex;
+  gap: 12px;
   justify-content: center;
   margin-bottom: 20px;
-  gap: 10px;
 }
 
+/* Base tab style */
 .tab {
-  padding: 10px 20px;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  border-radius: 8px 8px 0 0;
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+  user-select: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.tab:hover {
-  background-color: #eaeaea;
+/* Pending Tab - orange colors */
+.tab.pending {
+  background-color: #fef3c7; /* Light amber background */
+  color: #b45309;            /* Dark amber text */
+  border-color: #fbbf24;     /* Amber border */
 }
 
+.tab.pending:hover {
+  background-color: #fbbf24;
+  color: #78350f;
+  box-shadow: 0 6px 15px rgba(251, 191, 36, 0.5);
+}
+
+/* Approved Tab - green colors */
+.tab.approved {
+  background-color: #d1fae5; /* Light green background */
+  color: #065f46;            /* Dark green text */
+  border-color: #34d399;     /* Green border */
+}
+
+.tab.approved:hover {
+  background-color: #34d399;
+  color: #064e3b;
+  box-shadow: 0 6px 15px rgba(52, 211, 153, 0.5);
+}
+
+/* Active tab effect */
 .tab.active {
-  background-color: #fff;
-  border-bottom: 2px solid #4285F4;
-  color: #4285F4;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
 }
+
 
 .modal-overlay {
   position: fixed;

@@ -89,21 +89,22 @@ export default function AllAppointments() {
     <AdminLayout>
       <h2>All Appointments</h2>
 
-      {/* Tab Navigation */}
-      <div className="tab-header">
-        <button
-          className={activeTab === 'pending' ? 'tab active' : 'tab'}
-          onClick={() => setActiveTab('pending')}
-        >
-          📝 Pending
-        </button>
-        <button
-          className={activeTab === 'approved' ? 'tab active' : 'tab'}
-          onClick={() => setActiveTab('approved')}
-        >
-          ✅ Approved
-        </button>
-      </div>
+     {/* Tab Navigation */}
+<div className="tab-header">
+  <button
+    className={`tab pending ${activeTab === 'pending' ? 'active' : ''}`}
+    onClick={() => setActiveTab('pending')}
+  >
+     Pending
+  </button>
+  <button
+    className={`tab approved ${activeTab === 'approved' ? 'active' : ''}`}
+    onClick={() => setActiveTab('approved')}
+  >
+     Approved
+  </button>
+</div>
+
 
       {/* Modal */}
       {showModal && (

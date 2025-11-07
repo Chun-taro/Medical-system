@@ -18,28 +18,28 @@
   color: #555;
 }
 
-/* Form Styling (Add Medicine) */
-.medicine-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-  align-items: center;
-}
-
+/* Shared sizing for form controls to align uniformly */
 .medicine-form input,
-.medicine-form button {
-  padding: 10px 12px;
+.medicine-form button,
+.dispense-form select,
+.dispense-form input,
+.dispense-form button {
+  box-sizing: border-box;
+  height: 40px;            /* consistent height for alignment */
+  padding: 0 12px;         /* horizontal padding only */
   font-size: 0.95rem;
   border-radius: 6px;
   border: 1px solid #ccc;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.medicine-form input:focus {
-  border-color: #0077cc;
-  box-shadow: 0 0 0 2px rgba(0, 119, 204, 0.15);
-  outline: none;
+/* Form Styling (Add Medicine) */
+.medicine-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: end;        /* align button with bottom of inputs */
 }
 
 .medicine-form button {
@@ -48,7 +48,6 @@
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .medicine-form button:disabled {
@@ -61,43 +60,53 @@
   transform: scale(1.02);
 }
 
-/* Dispense Form */
+.medicine-form input:focus {
+  border-color: #0077cc;
+  box-shadow: 0 0 0 2px rgba(0, 119, 204, 0.15);
+  outline: none;
+}
+
 .dispense-form {
   display: flex;
   gap: 12px;
   margin-bottom: 25px;
-  align-items: center;
+  align-items: center;        /* ensure all items centre on the cross‑axis */
 }
 
 .dispense-form select,
 .dispense-form input,
 .dispense-form button {
-  padding: 10px 12px;
+  box-sizing: border-box;     /* include padding & border in total height */
+  margin: 0;                   /* reset any margins that might shift baseline */
+  height: 38px;                /* consistent height for all controls */
+  padding: 0 12px;             /* equal horizontal padding */
   font-size: 0.95rem;
-  border-radius: 6px;
+  border-radius: 5px;
   border: 1px solid #ccc;
+  display: flex;               /* help align button text & input content */
+  align-items: center;         /* centre content vertically inside controls */
 }
 
-.dispense-form select:focus,
-.dispense-form input:focus {
-  border-color: #28a745;
-  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.15);
-  outline: none;
+.dispense-form input {
+  width: 110px;                /* narrower width for quantity input */
+  flex: none;                  /* do not let it stretch */
 }
 
 .dispense-form button {
+  width: auto;                 /* allow natural width */
+  justify-content: center;     /* centre its content */
   background-color: #28a745;
   color: #fff;
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .dispense-form button:hover {
   background-color: #218838;
   transform: scale(1.02);
 }
+
 
 /* Table Styling */
 .inventory-table {

@@ -20,48 +20,59 @@
   color: #1e293b;
 }
 
+/* Stats cards smaller & vertical alignment */
 .stats-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.2rem;
+  display: flex;
+  flex-direction: column; /* vertical stack */
+  gap: 0.6rem; /* smaller gap between cards */
 }
 
 .stat-card {
   background-color: #fff;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 0.4rem 0.7rem;   /* reduce vertical padding */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-size: 0.85rem;
+  max-height:70px;     /* enforce shorter height */
+  overflow: hidden;         /* hide excess content if any */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+   width: 220px;           
+  max-width: 100%;   
 }
 
+
 .stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
 }
 
 .stat-card h3 {
-  font-size: 1rem;
-  margin-bottom: 0.4rem;
+  font-size: 0.75rem;         /* smaller heading */
+  margin-bottom: 0.2rem;
   font-weight: 500;
   color: #475569;
 }
 
 .stat-card p {
-  font-size: 2rem;
+  font-size: 1rem;           /* slightly smaller number */
   font-weight: 700;
   margin: 0;
 }
 
+
 .stat-card.blue {
-  border-left: 6px solid #3b82f6;
+  border-left: 4px solid #3b82f6;
 }
 
 .stat-card.green {
-  border-left: 6px solid #10b981;
+  border-left: 4px solid #10b981;
 }
 
 .stat-card.yellow {
-  border-left: 6px solid #f59e0b;
+  border-left: 4px solid #db8e08;
 }
 
 /* ──────────────── Calendar & Appointments ──────────────── */
@@ -75,27 +86,67 @@
 .calendar-card {
   background-color: #fff;
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
+/* Calendar styling */
 .styled-calendar {
-  width: 100%;
+  width: 200%;
   border: none;
   font-family: 'Inter', sans-serif;
   border-radius: 10px;
 }
 
+.dashboard-left {
+  flex: 1;                /* stats column */
+}
+
+.dashboard-right {
+  flex:3;            /* make calendar section take more space */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.calendar-card {
+  flex: 1;                /* this makes the calendar‑card expand to fill available height */
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+
+/* Calendar tiles - square with gaps */
+.react-calendar__month-view__days__day,
+.react-calendar__tile {
+  border-radius: 6px !important; /* square with slight curve */
+  padding: 0.5rem 0;
+  margin: 3px; /* gap between tiles */
+  text-align: center;
+  font-weight: 500;
+  color: #334155;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
 .react-calendar__tile--active {
   background: #3b82f6 !important;
   color: #fff !important;
-  border-radius: 8px;
+  border-radius: 6px !important;
+  font-weight: 600;
 }
 
 .react-calendar__tile--now {
   background: #e0f2fe !important;
   color: #2563eb !important;
-  border-radius: 8px;
+  border-radius: 6px !important;
+  font-weight: 600;
+}
+
+.react-calendar__tile:enabled:hover {
+  background: #dbeafe;
+  border-radius: 6px;
 }
 
 /* ──────────────── Appointment List ──────────────── */
