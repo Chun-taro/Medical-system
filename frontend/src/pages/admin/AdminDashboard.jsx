@@ -131,8 +131,8 @@ export default function AdminDashboard() {
                     >
                       <div className="appointment-info">
                         <strong>
-                          {app.firstName} {app.lastName}
-                        </strong>
+  {app.patientId?.firstName || 'Unknown'} {app.patientId?.lastName || ''}
+</strong>
                         <span className="appointment-time">
                           {new Date(app.appointmentDate).toLocaleTimeString([], {
                             hour: '2-digit',
@@ -141,8 +141,8 @@ export default function AdminDashboard() {
                         </span>
                       </div>
                       <p className="appointment-note">
-                        Purpose: {app.purpose || 'N/A'}
-                      </p>
+  Purpose: {app.purpose || 'N/A'}<br />
+</p>
                     </li>
                   );
                 })

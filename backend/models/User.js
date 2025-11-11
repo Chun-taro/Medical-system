@@ -68,6 +68,48 @@ const userSchema = new mongoose.Schema({
     other: { type: String, trim: true }
   },
 
+  // Personal-Social History
+personalSocialHistory: {
+  smoking: { type: String, enum: ['yes', 'no'], default: 'no' },
+  smokingSticks: { type: Number, default: 0 },
+  drinking: { type: String, enum: ['yes', 'no'], default: 'no' },
+  drinkingStartYear: { type: String, trim: true },
+  drinkingFrequency: { type: String, trim: true }
+},
+
+// Past Medical History
+pastMedicalHistory: {
+  asthma: { type: Boolean, default: false },
+  heartProblems: { type: Boolean, default: false },
+  seizures: { type: Boolean, default: false },
+  pneumonia: { type: Boolean, default: false },
+  typhoid: { type: Boolean, default: false },
+  tuberculosis: { type: Boolean, default: false },
+  chickenpox: { type: Boolean, default: false },
+  measles: { type: Boolean, default: false },
+  germanMeasles: { type: Boolean, default: false }
+},
+
+// Previous Admissions and Operations
+admissionCount: { type: Number, default: 0 },
+admissionReason: { type: String, trim: true },
+operationDate: { type: Date },
+operationProcedure: { type: String, trim: true },
+
+// Immunization History
+immunization: {
+  BCG: { type: Boolean, default: false },
+  HepatitisB: { type: Boolean, default: false },
+  Polio: { type: Boolean, default: false },
+  DPT: { type: Boolean, default: false }, 
+  MMR: { type: Boolean, default: false }, 
+  Chickenpox: { type: Boolean, default: false },
+  AntiRabies: { type: Boolean, default: false },
+  TetanusBooster: { type: Boolean, default: false }
+},
+lastAdmissionDate: { type: Date },
+lastAdmissionTypeLocation: { type: String, trim: true },
+
   //  Login Info
   email: {
     type: String,

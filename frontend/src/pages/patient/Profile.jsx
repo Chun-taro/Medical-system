@@ -5,7 +5,7 @@ import './Style/Profile.css';
 import { usePatient } from '../../context/PatientContext';
 
 export default function Profile() {
-  const { setPatient: setContextPatient } = usePatient(); // ✅ removed unused contextPatient
+  const { setPatient: setContextPatient } = usePatient(); 
 
   const [patient, setPatient] = useState({});
   const [editForm, setEditForm] = useState({});
@@ -69,7 +69,7 @@ export default function Profile() {
     const data = await res.json();
     if (res.ok) {
       setPatient(data.user);
-      setContextPatient(data.user); // ✅ update context
+      setContextPatient(data.user); 
       setShowEditModal(false);
       alert('Profile updated');
     }
@@ -114,32 +114,64 @@ export default function Profile() {
 
         {/* About Section */}
         <div className="fb-content">
-          <div className="fb-card">
-            <h3>About</h3>
-            <div className="fb-about-grid">
-              <div><span className="fb-label">Sex</span><span className="fb-value">{patient.sex || '—'}</span></div>
-              <div><span className="fb-label">Civil Status</span><span className="fb-value">{patient.civilStatus || '—'}</span></div>
-              <div><span className="fb-label">Birthday</span><span className="fb-value">{patient.birthday?.slice(0, 10) || '—'}</span></div>
-              <div><span className="fb-label">Address</span><span className="fb-value">{patient.homeAddress || '—'}</span></div>
-              <div><span className="fb-label">Contact</span><span className="fb-value">{patient.contactNumber || '—'}</span></div>
-              <div><span className="fb-label">Blood Type</span><span className="fb-value">{patient.bloodType || '—'}</span></div>
-              <div><span className="fb-label">Emergency Contact</span><span className="fb-value">
-                {patient.emergencyContact?.name || '—'} ({patient.emergencyContact?.relationship || '—'})
-              </span></div>
-              <div><span className="fb-label">Emergency Phone</span><span className="fb-value">{patient.emergencyContact?.phone || '—'}</span></div>
-              <div><span className="fb-label">Allergies</span><span className="fb-value">{patient.allergies?.join(', ') || '—'}</span></div>
-              <div><span className="fb-label">Medical History</span><span className="fb-value">{patient.medicalHistory?.join(', ') || '—'}</span></div>
-              <div><span className="fb-label">Current Medications</span><span className="fb-value">{patient.currentMedications?.join(', ') || '—'}</span></div>
-              <div><span className="fb-label">Family History</span><span className="fb-value">
-                {Object.entries(patient.familyHistory || {}).map(([key, value]) =>
-                  typeof value === 'boolean'
-                    ? value ? `${key}, ` : ''
-                    : value ? `Other: ${value}` : ''
-                )}
-              </span></div>
-            </div>
-          </div>
-        </div>
+  <div className="fb-card">
+    <h3>About</h3>
+    <div className="fb-about-grid">
+      {/* Core Info */}
+      <div><span className="fb-label">Sex</span><span className="fb-value">{patient.sex || '—'}</span></div>
+      <div><span className="fb-label">Civil Status</span><span className="fb-value">{patient.civilStatus || '—'}</span></div>
+      <div><span className="fb-label">Birthday</span><span className="fb-value">{patient.birthday?.slice(0, 10) || '—'}</span></div>
+      <div><span className="fb-label">Address</span><span className="fb-value">{patient.homeAddress || '—'}</span></div>
+      <div><span className="fb-label">Contact</span><span className="fb-value">{patient.contactNumber || '—'}</span></div>
+      <div><span className="fb-label">Blood Type</span><span className="fb-value">{patient.bloodType || '—'}</span></div>
+
+      {/* Emergency */}
+      <div><span className="fb-label">Emergency Contact</span><span className="fb-value">
+        {patient.emergencyContact?.name || '—'} ({patient.emergencyContact?.relationship || '—'})
+      </span></div>
+      <div><span className="fb-label">Emergency Phone</span><span className="fb-value">{patient.emergencyContact?.phone || '—'}</span></div>
+
+      {/* Medical */}
+      <div><span className="fb-label">Allergies</span><span className="fb-value">{patient.allergies?.join(', ') || '—'}</span></div>
+      <div><span className="fb-label">Medical History</span><span className="fb-value">{patient.medicalHistory?.join(', ') || '—'}</span></div>
+      <div><span className="fb-label">Current Medications</span><span className="fb-value">{patient.currentMedications?.join(', ') || '—'}</span></div>
+
+      {/* Family History */}
+      <div><span className="fb-label">Family History</span><span className="fb-value">
+        {Object.entries(patient.familyHistory || {}).map(([key, value]) =>
+          typeof value === 'boolean'
+            ? value ? `${key}, ` : ''
+            : value ? `Other: ${value}` : ''
+        )}
+      </span></div>
+
+      {/* Personal-Social History */}
+      <div><span className="fb-label">Smoker</span><span className="fb-value">{patient.personalSocialHistory?.smoking || '—'}</span></div>
+      <div><span className="fb-label">Sticks/Day</span><span className="fb-value">{patient.personalSocialHistory?.smokingSticks || '—'}</span></div>
+      <div><span className="fb-label">Drinker</span><span className="fb-value">{patient.personalSocialHistory?.drinking || '—'}</span></div>
+      <div><span className="fb-label">Drinking Since</span><span className="fb-value">{patient.personalSocialHistory?.drinkingStartYear || '—'}</span></div>
+      <div><span className="fb-label">Drinking Frequency</span><span className="fb-value">{patient.personalSocialHistory?.drinkingFrequency || '—'}</span></div>
+
+      {/* Past Medical History */}
+      <div><span className="fb-label">Past Medical History</span><span className="fb-value">
+        {Object.entries(patient.pastMedicalHistory || {}).filter(([_, v]) => v).map(([k]) => `${k}, `)}
+      </span></div>
+
+      {/* Admissions & Operations */}
+      <div><span className="fb-label">Admissions</span><span className="fb-value">{patient.admissionCount || '—'} ({patient.admissionReason || '—'})</span></div>
+      <div><span className="fb-label">Operation Date</span><span className="fb-value">{patient.operationDate?.slice(0, 10) || '—'}</span></div>
+      <div><span className="fb-label">Procedure</span><span className="fb-value">{patient.operationProcedure || '—'}</span></div>
+
+      {/* Immunization */}
+      <div><span className="fb-label">Immunizations</span><span className="fb-value">
+        {Object.entries(patient.immunization || {}).filter(([_, v]) => v).map(([k]) => `${k}, `)}
+      </span></div>
+      <div><span className="fb-label">Last Admission</span><span className="fb-value">
+        {patient.lastAdmissionDate?.slice(0, 10) || '—'} ({patient.lastAdmissionTypeLocation || '—'})
+      </span></div>
+    </div>
+  </div>
+</div>
 
         {/* Edit Modal */}
         {showEditModal && (
@@ -284,6 +316,127 @@ export default function Profile() {
             }
           />
         </div>
+
+        {/* Personal-Social History */}
+        <h4>Personal-Social History</h4>
+        {[
+          { name: 'smoking', type: 'select', options: ['no', 'yes'] },
+          { name: 'smokingSticks', type: 'number' },
+          { name: 'drinking', type: 'select', options: ['no', 'yes'] },
+          { name: 'drinkingStartYear', type: 'text' },
+          { name: 'drinkingFrequency', type: 'text' }
+        ].map(({ name, type, options }) => (
+          <div className="form-group" key={name}>
+            <label>{name.replace(/([A-Z])/g, ' $1')}</label>
+            {type === 'select' ? (
+              <select
+                value={editForm.personalSocialHistory?.[name] || ''}
+                onChange={e =>
+                  setEditForm(prev => ({
+                    ...prev,
+                    personalSocialHistory: {
+                      ...prev.personalSocialHistory,
+                      [name]: e.target.value
+                    }
+                  }))
+                }
+              >
+                <option value="">Select</option>
+                {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            ) : (
+              <input
+                type={type}
+                value={editForm.personalSocialHistory?.[name] || ''}
+                onChange={e =>
+                  setEditForm(prev => ({
+                    ...prev,
+                    personalSocialHistory: {
+                      ...prev.personalSocialHistory,
+                      [name]: e.target.value
+                    }
+                  }))
+                }
+              />
+            )}
+          </div>
+        ))}
+
+        {/* Past Medical History */}
+        <h4>Past Medical History</h4>
+        {['asthma', 'heartProblems', 'seizures', 'pneumonia', 'typhoid', 'tuberculosis', 'chickenpox', 'measles', 'germanMeasles'].map(condition => (
+          <div className="form-group" key={condition}>
+            <label>
+              <input
+                type="checkbox"
+                checked={editForm.pastMedicalHistory?.[condition] || false}
+                onChange={e =>
+                  setEditForm(prev => ({
+                    ...prev,
+                    pastMedicalHistory: {
+                      ...prev.pastMedicalHistory,
+                      [condition]: e.target.checked
+                    }
+                  }))
+                }
+              />
+              {' '}{condition.replace(/([A-Z])/g, ' $1')}
+            </label>
+          </div>
+        ))}
+
+        {/* Previous Admissions */}
+        <h4>Previous Admissions</h4>
+        <div className="form-group">
+          <label>Number of admissions</label>
+          <input type="number" name="admissionCount" value={editForm.admissionCount || ''} onChange={handleChange} />
+        </div>
+        <div className="form-group">
+          <label>Reason for admission</label>
+          <input type="text" name="admissionReason" value={editForm.admissionReason || ''} onChange={handleChange} />
+        </div>
+
+        {/* Previous Operations */}
+        <h4>Previous Operations</h4>
+        <div className="form-group">
+          <label>Date</label>
+          <input type="date" name="operationDate" value={editForm.operationDate || ''} onChange={handleChange} />
+        </div>
+        <div className="form-group">
+          <label>Procedure</label>
+          <input type="text" name="operationProcedure" value={editForm.operationProcedure || ''} onChange={handleChange} />
+        </div>
+
+        {/* Immunization History */}
+        <h4>Immunization History</h4>
+        {['BCG', 'HepatitisB', 'Polio', 'DPT', 'MMR', 'Chickenpox', 'AntiRabies', 'TetanusBooster'].map(vaccine => (
+          <div className="form-group" key={vaccine}>
+            <label>
+              <input
+                type="checkbox"
+                checked={editForm.immunization?.[vaccine] || false}
+                onChange={e =>
+                  setEditForm(prev => ({
+                    ...prev,
+                    immunization: {
+                      ...prev.immunization,
+                      [vaccine]: e.target.checked
+                    }
+                  }))
+                }
+              />
+              {' '}{vaccine}
+            </label>
+  </div>
+))}
+<div className="form-group">
+  <label>Date of last admission</label>
+  <input type="date" name="lastAdmissionDate" value={editForm.lastAdmissionDate || ''} onChange={handleChange} />
+</div>
+<div className="form-group">
+  <label>Type/Location</label>
+  <input type="text" name="lastAdmissionTypeLocation" value={editForm.lastAdmissionTypeLocation || ''} onChange={handleChange} />
+</div>
 
         {/* Actions */}
         <div className="modal-actions">

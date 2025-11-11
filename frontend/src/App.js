@@ -37,7 +37,7 @@ function App() {
       <PatientProvider>
         <Routes>
 
-          {/* 🔐 Auth Routes */}
+          {/* Auth Routes */}
           <Route path="/" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -48,7 +48,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardRedirect />} />
           <Route path="/unauthorized" element={<p>Access denied.</p>} />
 
-          {/* 🛠 Admin Routes */}
+          {/*  Admin Routes */}
           <Route
             path="/admin-dashboard"
             element={
@@ -114,7 +114,7 @@ function App() {
             }
           />
 
-          {/* 🩺 Patient Routes */}
+          {/*  Patient Routes */}
           <Route
             path="/patient-dashboard"
             element={
