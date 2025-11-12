@@ -29,7 +29,6 @@ router.patch('/:id', auth, updateAppointment);
 //  Admin routes
 router.get('/', auth, getAllAppointments);
 router.delete('/:id', auth, deleteAppointment);
-router.patch('/:id', auth, updateAppointment);
 router.patch('/:id/approve', auth, approveAppointment);
 
 //  Consultation routes

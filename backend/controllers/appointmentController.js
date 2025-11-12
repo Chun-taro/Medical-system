@@ -1,6 +1,8 @@
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const { sendNotification } = require('../utils/sendNotification');
+const sendEmail = require('../utils/mailer');
+
 
 
 
@@ -122,6 +124,40 @@ const getAllAppointments = async (req, res) => {
   }
 };
 
+const updateAppointmentStatus = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const { status } = req.body;
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      appointmentId,
+      { status },
+      { new: true }
+    ).populate('patientId');
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    const patient = appointment.patientId;
+
+    // Send email notification
+    await sendEmail({
+      to: patient.email,
+      subject: `Your appointment has been ${status}`,
+      html: `
+        <p>Hi ${patient.firstName},</p>
+        <p>Your appointment on <strong>${appointment.appointmentDate.toDateString()}</strong> has been <strong>${status}</strong>.</p>
+        <p>Thank you,<br/>Clinic Team</p>
+      `
+    });
+
+    res.json({ message: `Appointment ${status} and email sent.` });
+  } catch (err) {
+    console.error('Update appointment error:', err.message);
+    res.status(500).json({ error: 'Failed to update appointment' });
+  }
+};
 
 
 // Approve appointment
@@ -135,23 +171,51 @@ const approveAppointment = async (req, res) => {
       req.params.id,
       { status: 'approved' },
       { new: true }
-    );
+    ).populate('patientId');
 
-    if (!updated) return res.status(404).json({ error: 'Appointment not found' });
+    if (!updated || !updated.patientId) {
+      return res.status(404).json({ error: 'Appointment or patient not found' });
+    }
 
-    sendNotification({
-      userId: updated.patientId,
+    const patient = updated.patientId;
+
+    // In-app notification
+    await sendNotification({
+      userId: patient._id,
       status: 'approved',
-      message: 'Your appointment has been approved',
+      message: `Your appointment on ${updated.appointmentDate.toDateString()} has been approved.`,
       recipientType: 'patient'
     });
 
-    res.json({ message: 'Appointment approved', appointment: updated });
+    // Email notification
+    if (patient.email) {
+      try {
+        await sendEmail({
+          to: patient.email,
+          subject: 'Your appointment has been approved',
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+              <h2 style="color: #2E86C1;">Appointment Approved</h2>
+              <p>Hi ${patient.firstName},</p>
+              <p>Your appointment scheduled for <strong>${updated.appointmentDate.toDateString()}</strong> has been <strong>approved</strong>.</p>
+              <p>Please arrive 10 minutes early and bring any necessary documents.</p>
+              <p style="margin-top: 20px;">Thank you,<br/>Clinic Team</p>
+            </div>
+          `
+        });
+      } catch (emailErr) {
+        console.error('Email send error:', emailErr.message);
+        // Optionally log this in a NotificationLog or alert admin
+      }
+    }
+
+    res.json({ message: 'Appointment approved and notification sent', appointment: updated });
   } catch (err) {
-    console.error(' Approval error:', err.message);
+    console.error('Approval error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 //  Start consultation
 const startConsultation = async (req, res) => {
@@ -344,13 +408,13 @@ function findMostCommon(arr) {
 //  Update appointment (admin or patient)
 const updateAppointment = async (req, res) => {
   try {
-    const appointment = await Appointment.findById(req.params.id);
+    const appointment = await Appointment.findById(req.params.id).populate('patientId');
     if (!appointment) {
       return res.status(404).json({ error: 'Appointment not found' });
     }
 
     const isAdmin = req.user.role === 'admin';
-    const isOwner = String(appointment.patientId) === String(req.user.userId);
+    const isOwner = String(appointment.patientId._id) === String(req.user.userId);
 
     if (!isAdmin && !isOwner) {
       return res.status(403).json({ error: 'Access denied' });
@@ -371,35 +435,63 @@ const updateAppointment = async (req, res) => {
     // Build notification message if something changed
     if (changes.length > 0) {
       let message = `Your appointment has been updated.`;
+      let emailDetails = '';
+
       if (changes.includes('appointmentDate')) {
-        message += ` New date: ${new Date(appointment.appointmentDate).toLocaleDateString()}.`;
+        const dateStr = new Date(appointment.appointmentDate).toLocaleDateString();
+        message += ` New date: ${dateStr}.`;
+        emailDetails += `<p><strong>New Date:</strong> ${dateStr}</p>`;
       }
       if (changes.includes('purpose')) {
         message += ` Purpose: ${appointment.purpose}.`;
+        emailDetails += `<p><strong>Purpose:</strong> ${appointment.purpose}</p>`;
       }
       if (changes.includes('typeOfVisit')) {
         message += ` Type of visit: ${appointment.typeOfVisit}.`;
+        emailDetails += `<p><strong>Type of Visit:</strong> ${appointment.typeOfVisit}</p>`;
       }
       if (changes.includes('diagnosis')) {
         message += ` Diagnosis: ${appointment.diagnosis}.`;
+        emailDetails += `<p><strong>Diagnosis:</strong> ${appointment.diagnosis}</p>`;
       }
 
-      sendNotification({
-        userId: appointment.patientId,
+      // In-app notification
+      await sendNotification({
+        userId: appointment.patientId._id,
         status: 'updated',
         message,
         recipientType: 'patient'
       });
+
+      // Email notification (only if appointmentDate changed or admin triggered)
+      if (appointment.patientId.email && (changes.includes('appointmentDate') || isAdmin)) {
+        try {
+          await sendEmail({
+            to: appointment.patientId.email,
+            subject: 'Your appointment has been updated',
+            html: `
+              <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="color: #E67E22;">Appointment Updated</h2>
+                <p>Hi ${appointment.patientId.firstName},</p>
+                <p>Your appointment has been updated with the following changes:</p>
+                ${emailDetails}
+                <p>If you have any questions, feel free to contact us.</p>
+                <p style="margin-top: 20px;">Thank you,<br/>Clinic Team</p>
+              </div>
+            `
+          });
+        } catch (emailErr) {
+          console.error('Email send error:', emailErr.message);
+        }
+      }
     }
 
     res.json({ message: 'Appointment updated', appointment });
   } catch (err) {
-    console.error(' Update error:', err.message);
+    console.error('Update error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-const Medicine = require('../models/Medicine');
 
 const prescribeMedicines = async (req, res) => {
   const { id: consultationId } = req.params;
