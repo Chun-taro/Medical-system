@@ -16,6 +16,7 @@ const userRoutes = require('./routes/users');
 const resetRoutes = require('./routes/reset');
 const medicineRoutes = require('./routes/medicines');
 const notificationRoutes = require('./routes/notification');
+const systemRoutes = require('./routes/system');
 
 require('./passport');
 
@@ -59,6 +60,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/reset', resetRoutes);
 app.use('/api/medicines', medicineRoutes); 
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/system', systemRoutes);
 
 // MongoDB connection
 const uri = process.env.MONGO_URI;

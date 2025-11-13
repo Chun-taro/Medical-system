@@ -5,7 +5,7 @@ const axios = require('axios');
 const jwt = require('jsonwebtoken');
 
 
-// Add this above your `googleSignup` function
+
 
 const signup = async (req, res) => {
   try {
