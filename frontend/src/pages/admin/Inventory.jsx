@@ -219,14 +219,17 @@ export default function Inventory() {
   </tr>
 </thead>
 <tbody>
-  {dispenseHistory.map((record, index) => (
-    <tr key={index}>
-      <td>{record.medicineName}</td>
-      <td>{record.quantity}</td>
-      <td>{new Date(record.dispensedAt).toLocaleString()}</td>
-      <td>{record.source === 'consultation' ? 'Consultation' : 'Manual Dispense'}</td> 
-    </tr>
-  ))}
+  {dispenseHistory
+    .slice()
+    .sort((a, b) => new Date(b.dispensedAt) - new Date(a.dispensedAt))
+    .map((record, index) => (
+      <tr key={index}>
+        <td>{record.medicineName}</td>
+        <td>{record.quantity}</td>
+        <td>{new Date(record.dispensedAt).toLocaleString()}</td>
+        <td>{record.source === 'consultation' ? 'Consultation' : 'Manual Dispense'}</td>
+      </tr>
+    ))}
 </tbody>
                   </table>
                 </div>

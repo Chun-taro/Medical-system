@@ -108,7 +108,7 @@ const googleSignup = async (req, res) => {
       recaptchaToken
     } = req.body;
 
-    // ✅ Verify reCAPTCHA
+    //  Verify reCAPTCHA
     const recaptchaRes = await axios.post(
       `https://www.google.com/recaptcha/api/siteverify`,
       null,
