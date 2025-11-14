@@ -13,7 +13,6 @@ function useRealTime() {
 }
 
 export default function Reports() {
-  const [stats, setStats] = useState({});
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -24,17 +23,13 @@ export default function Reports() {
   };
 
   useEffect(() => {
-    const fetchReports = async () => {
+    const fetchConsultations = async () => {
       try {
         const token = localStorage.getItem("token");
-        const [statsRes, consultRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/appointments/reports", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://localhost:5000/api/appointments/consultations", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+        const consultRes = await axios.get(
+          "http://localhost:5000/api/appointments/consultations",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
         const sortedConsultations = consultRes.data.sort((a, b) => {
           const dateA = new Date(
@@ -46,20 +41,19 @@ export default function Reports() {
           return dateB - dateA;
         });
 
-        setStats(statsRes.data || {});
         setConsultations(sortedConsultations);
         if (sortedConsultations.length > 0) {
           setExpandedId(sortedConsultations[0]._id);
         }
       } catch (err) {
-        console.error("Error fetching reports:", err);
-        setError("Failed to load reports");
+        console.error("Error fetching consultations:", err);
+        setError("Failed to load consultations");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReports();
+    fetchConsultations();
   }, []);
 
   const formatDateTime = (date) => {
@@ -87,32 +81,15 @@ export default function Reports() {
       <div className="reports-container">
         <div className="header-section">
           <h2>📊 Reports Dashboard</h2>
-          <p>Monitor system metrics and patient consultations.</p>
+          <p>Monitor patient consultations.</p>
         </div>
 
         {loading ? (
-          <p className="status-msg">Loading reports...</p>
+          <p className="status-msg">Loading consultations...</p>
         ) : error ? (
           <p className="status-msg error">{error}</p>
         ) : (
           <>
-            {/* Stats Section */}
-            <div className="report-cards">
-              {Object.entries(stats).map(([key, value]) => (
-                <div className="card" key={key}>
-                  <div className="icon-placeholder">📈</div>
-                  <div className="card-info">
-                    <strong>
-                      {key.replace(/([A-Z])/g, " $1").replace(/^./, (s) =>
-                        s.toUpperCase()
-                      )}
-                    </strong>
-                    <span>{value}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
             {/* Consultations */}
             <h3 className="section-title">🩺 Past Consultations</h3>
             <div className="consultation-split-view">
@@ -131,7 +108,8 @@ export default function Reports() {
                         {c.firstName} {c.lastName}
                       </p>
                       <p className="consult-date">
-                        <strong>Date:</strong> {formatDateTime(c.appointmentDate)}
+                        <strong>Date:</strong>{" "}
+                        {formatDateTime(c.appointmentDate)}
                       </p>
                       <p className="consult-diagnosis">{c.diagnosis}</p>
                     </div>
@@ -147,30 +125,44 @@ export default function Reports() {
                   const selected = consultations.find(
                     (c) => c._id === expandedId
                   );
-                  if (!selected) return <p>Select a consultation to view details.</p>;
+                  if (!selected)
+                    return <p>Select a consultation to view details.</p>;
 
                   return (
                     <div key={selected._id}>
                       <h4>
                         {selected.firstName} {selected.lastName}
                       </h4>
-                      <p><strong>Diagnosis:</strong> {selected.diagnosis}</p>
-                      <p><strong>Management:</strong> {selected.management}</p>
-                      <p><strong>Chief Complaint:</strong> {selected.chiefComplaint}</p>
+                      <p>
+                        <strong>Diagnosis:</strong> {selected.diagnosis}
+                      </p>
+                      <p>
+                        <strong>Management:</strong> {selected.management}
+                      </p>
+                      <p>
+                        <strong>Chief Complaint:</strong>{" "}
+                        {selected.chiefComplaint}
+                      </p>
 
-                      <p><strong>Prescribed Medicines:</strong></p>
+                      <p>
+                        <strong>Prescribed Medicines:</strong>
+                      </p>
                       <ul>
                         {Array.isArray(selected.medicinesPrescribed)
                           ? selected.medicinesPrescribed.map((med, idx) => (
-                              <li key={idx}>{med.name} ×{med.quantity}</li>
+                              <li key={idx}>
+                                {med.name} ×{med.quantity}
+                              </li>
                             ))
-                          : <li>{selected.medicinesPrescribed || "—"}</li>}
+                          : (
+                            <li>{selected.medicinesPrescribed || "—"}</li>
+                          )}
                       </ul>
 
                       <p>
-                        <strong>Vitals:</strong> BP: {selected.bloodPressure}, Temp:{" "}
-                        {selected.temperature}, HR: {selected.heartRate}, O₂:{" "}
-                        {selected.oxygenSaturation}, BMI: {selected.bmi}
+                        <strong>Vitals:</strong> BP: {selected.bloodPressure},
+                        Temp: {selected.temperature}, HR: {selected.heartRate},
+                        O₂: {selected.oxygenSaturation}, BMI: {selected.bmi}
                       </p>
                       <p>
                         <strong>Referred:</strong>{" "}

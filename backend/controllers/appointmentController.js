@@ -205,7 +205,7 @@ const approveAppointment = async (req, res) => {
         });
       } catch (emailErr) {
         console.error('Email send error:', emailErr.message);
-        // Optionally log this in a NotificationLog or alert admin
+        
       }
     }
 

@@ -7,6 +7,9 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const http = require('http');
 const socketIo = require('socket.io');
+const helmet = require('helmet');
+const calendarRoutes = require('./routes/calendar');
+
 
 // Route imports
 const authRoutes = require('./routes/auth');
@@ -17,6 +20,7 @@ const resetRoutes = require('./routes/reset');
 const medicineRoutes = require('./routes/medicines');
 const notificationRoutes = require('./routes/notification');
 const systemRoutes = require('./routes/system');
+
 
 require('./passport');
 
@@ -31,7 +35,11 @@ app.use((req, res, next) => {
 });
 
 // Middleware
-app.use(cors());
+app.use(helmet()); // security headers
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
 
 // Session setup
@@ -40,8 +48,9 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
-    maxAge: 1000 * 60 * 60 * 24
+    secure: process.env.NODE_ENV === 'production', // only secure in prod
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
 
@@ -58,9 +67,11 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reset', resetRoutes);
-app.use('/api/medicines', medicineRoutes); 
+app.use('/api/medicines', medicineRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/system', systemRoutes);
+app.use('/api/calendar', calendarRoutes);
+
 
 // MongoDB connection
 const uri = process.env.MONGO_URI;
@@ -87,23 +98,21 @@ mongoose.connection.on('error', err => {
   console.error(' MongoDB runtime error:', err.message);
 });
 
-mongoose.set('debug', true);
+mongoose.set('debug', process.env.NODE_ENV !== 'production');
 
 // Google OAuth callback
 app.get('/api/auth/google/callback',
-  passport.authenticate('google', {
-    failureRedirect: '/api/auth/google/failure'
-  }),
+  passport.authenticate('google', { failureRedirect: '/api/auth/google/failure' }),
   async (req, res) => {
     try {
       const user = req.user;
       if (!user) {
         console.error(' No user returned from Passport');
-        return res.redirect('http://localhost:3000/oauth-failure');
+        return res.redirect(`${process.env.CLIENT_URL}/oauth-failure`);
       }
 
       if (user.isNewUser) {
-        const signupUrl = new URL('http://localhost:3000/google-signup');
+        const signupUrl = new URL(`${process.env.CLIENT_URL}/google-signup`);
         signupUrl.searchParams.set('googleId', user.googleId);
         signupUrl.searchParams.set('email', user.email);
         signupUrl.searchParams.set('firstName', user.firstName);
@@ -113,7 +122,7 @@ app.get('/api/auth/google/callback',
 
       const validRoles = ['admin', 'patient', 'doctor', 'nurse'];
       if (!validRoles.includes(user.role)) {
-        return res.redirect('http://localhost:3000/oauth-failure');
+        return res.redirect(`${process.env.CLIENT_URL}/oauth-failure`);
       }
 
       const token = jwt.sign(
@@ -122,7 +131,7 @@ app.get('/api/auth/google/callback',
         { expiresIn: '1d' }
       );
 
-      const redirectUrl = new URL('http://localhost:3000/oauth-success');
+      const redirectUrl = new URL(`${process.env.CLIENT_URL}/oauth-success`);
       redirectUrl.searchParams.set('token', token);
       redirectUrl.searchParams.set('role', user.role);
       redirectUrl.searchParams.set('userId', user._id.toString());
@@ -131,7 +140,7 @@ app.get('/api/auth/google/callback',
       res.redirect(redirectUrl.toString());
     } catch (err) {
       console.error(' Google OAuth callback error:', err.message);
-      res.redirect('http://localhost:3000/oauth-failure');
+      res.redirect(`${process.env.CLIENT_URL}/oauth-failure`);
     }
   }
 );

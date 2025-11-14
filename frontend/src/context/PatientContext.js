@@ -18,6 +18,14 @@ export function PatientProvider({ children }) {
         const res = await fetch('http://localhost:5000/api/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (res.status === 401) {
+          console.warn('Token expired or invalid, logging out');
+          localStorage.removeItem('token');
+          setPatient(null);
+          return;
+        }
+
         const data = await res.json();
         if (res.ok) {
           setPatient(data);

@@ -45,7 +45,7 @@ const signup = async (req, res) => {
       role: newUser.role
     });
   } catch (err) {
-    console.error('❌ Signup error:', err.message);
+    console.error(' Signup error:', err.message);
     res.status(500).json({ error: 'Signup failed' });
   }
 };
@@ -73,7 +73,7 @@ const login = async (req, res) => {
       role: user.role
     });
   } catch (err) {
-    console.error('❌ Login error:', err.message);
+    console.error(' Login error:', err.message);
     res.status(500).json({ error: 'Login failed' });
   }
 };
