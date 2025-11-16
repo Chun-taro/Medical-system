@@ -1,26 +1,38 @@
 const express = require('express');
-const passport = require('passport');
-const jwt = require('jsonwebtoken');
-const { signup, login, validateToken, googleSignup } = require('../controllers/authController');
-const { auth } = require('../middleware/auth');
-
 const router = express.Router();
 
-//  Local auth routes
+const {
+  signup,
+  login,
+  googleSignup,
+  validateToken
+} = require('../controllers/authController');
+
+const { auth } = require('../middleware/auth');
+const passport = require('passport');
+const jwt = require('jsonwebtoken');
+
+//  Local Authentication
 router.post('/signup', signup);
 router.post('/login', login);
 router.post('/google-signup', googleSignup);
+
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   res.json({ message: 'If your email is registered, a reset link has been sent.' });
 });
 
-//  Google OAuth initiation
+//  Token Validation
+
+router.get('/validate', auth, validateToken);
+
+// Google OAuth Flow
+
+
 router.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-//  Google OAuth callback
 router.get('/google/callback', (req, res, next) => {
   passport.authenticate('google', async (err, user) => {
     if (err) return next(err);
@@ -50,14 +62,11 @@ router.get('/google/callback', (req, res, next) => {
 
         return res.redirect(redirectUrl.toString());
       } catch (tokenErr) {
-        console.error(' Token generation error:', tokenErr.message);
+        console.error('Token generation error:', tokenErr.message);
         return res.redirect('http://localhost:3000/oauth-failure');
       }
     });
   })(req, res, next);
 });
-
-//  Token validation route
-router.get('/validate', auth, validateToken);
 
 module.exports = router;
