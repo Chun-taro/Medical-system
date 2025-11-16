@@ -32,7 +32,6 @@
   margin-bottom: 1.5rem;
   text-align: center;
 }
-
 .sidebar-menu {
   list-style: none;
   padding: 0;
@@ -51,23 +50,18 @@
   transition: background 0.3s ease, transform 0.2s ease;
   font-weight: 500;
 }
-
 .sidebar-menu li:hover {
   background-color: rgba(255, 255, 255, 0.15);
   transform: translateX(3px);
 }
-
 .sidebar-menu li.active {
   background-color: #3b82f6;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
-
 .menu-icon {
   width: 20px;
   height: 20px;
 }
-
-
 
 /* ────────────────────────────────
    Main Content
@@ -78,36 +72,196 @@
   flex-direction: column;
   overflow: hidden;
 }
-
-.navbar {
-  padding: 1rem 2rem;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.navbar-user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.navbar-name {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #1e293b;
-}
-
 .page-content {
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
   background-color: #f9fafb;
+}
+
+/* ────────────────────────────────
+   Navbar
+──────────────────────────────── */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.navbar-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1e293b;
+}
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* ────────────────────────────────
+   Profile Dropdown
+──────────────────────────────── */
+.profile-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.profile-icon,
+.profile-initials {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  object-fit: cover;
+  border: 2px solid #334155;
+}
+.profile-icon:hover,
+.profile-initials:hover {
+  transform: scale(1.1);
+}
+.profile-initials {
+  background-color: #1e293b;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background-color: white;
+  color: #333;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  min-width: 160px;
+  z-index: 1000;
+}
+.dropdown button {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  border: none;
+  background: none;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 0.95rem;
+}
+.dropdown button:hover {
+  background-color: #f1f5f9;
+}
+
+/* ────────────────────────────────
+   Notification Bell & Dropdown
+──────────────────────────────── */
+.notification-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.notification-icon {
+  width: 24px;
+  height: 24px;
+  color: #334155;
+  transition: transform 0.2s ease;
+}
+.notification-icon:hover {
+  transform: scale(1.1);
+}
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border-radius: 50%;
+  padding: 2px 6px;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #f8fafc;
+  min-width: 18px;
+  text-align: center;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  padding: 12px;
+}
+.dropdown-header {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.dropdown-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dropdown-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  background-color: #fefefe;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.dropdown-item.unread {
+  background-color: #f0f4ff;
+}
+.dropdown-message {
+  font-weight: 500;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+.dropdown-meta {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.mark-read-btn {
+  margin-top: 6px;
+  font-size: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.mark-read-btn:hover {
+  background: #005fa3;
 }
 
 /* ────────────────────────────────
@@ -124,17 +278,21 @@
     position: sticky;
     top: 0;
   }
-
-  
 }
 
 @media (max-width: 767px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
   .sidebar {
     width: 100%;
     flex-direction: row;
     align-items: center;
     justify-content: space-around;
     padding: 1rem;
+    height: auto;
+    box-shadow: none;
   }
 
   .sidebar-title {
@@ -142,7 +300,7 @@
   }
 
   .sidebar-menu {
-    display: flex;
+    flex-direction: row;
     gap: 10px;
   }
 
@@ -150,184 +308,58 @@
     display: none;
   }
 
-  .logout-button {
-    padding: 0.5rem;
-    gap: 5px;
+  .menu-icon {
+    width: 18px;
+    height: 18px;
   }
-}
 
-/* Profile dropdown on top-right corner */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #f8fafc;
-  padding: 10px 20px;
-  border-bottom: 1px solid #e2e8f0;
-  position: relative;
-}
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
 
-.profile-menu {
-  position: relative;
-}
+  .navbar-right {
+    width: 100%;
+    justify-content: flex-end;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* tighter spacing between bell and profile */
+  }
 
-.profile-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
+  .profile-icon,
+  .profile-initials {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
 
-.profile-icon:hover {
-  transform: scale(1.1);
-}
+  .dropdown {
+    top: 45px;
+    min-width: 140px;
+  }
 
-.dropdown {
-  position: absolute;
-  right: 0;
-  top: 50px;
-  background-color: white;
-  color: #333;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  min-width: 160px;
-  z-index: 1000;
-}
+  .dropdown button {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
 
-.dropdown button {
-  display: block;
-  width: 100%;
-  padding: 10px 14px;
-  text-align: left;
-  border: none;
-  background: none;
-  color: #333;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 0.95rem;
-}
+  .notification-icon {
+    width: 20px;
+    height: 20px;
+  }
 
-.dropdown button:hover {
-  background-color: #f1f5f9;
-}
+  .notification-badge {
+    font-size: 0.55rem;
+    padding: 1px 4px;
+  }
 
-/* Profile menu styles */
-.profile-menu {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
+  .notification-wrapper {
+    margin-right: 0.25rem; /* slight spacing before profile icon */
+  }
 
-.profile-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  object-fit: cover;
-  border: 2px solid #334155;
-}
-
-.profile-icon:hover {
-  transform: scale(1.1);
-}
-
-/* Fallback initials avatar */
-.profile-initials {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background-color: #1e293b;
-  color: white;
-  font-weight: 600;
-  font-size: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  border: 2px solid #334155;
-  transition: transform 0.2s ease;
-}
-
-.profile-initials:hover {
-  transform: scale(1.1);
-}
-
-/* Dropdown styles */
-.dropdown {
-  position: absolute;
-  right: 0;
-  top: 50px;
-  background-color: white;
-  color: #333;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  min-width: 160px;
-  z-index: 1000;
-}
-
-.dropdown button {
-  display: block;
-  width: 100%;
-  padding: 10px 14px;
-  text-align: left;
-  border: none;
-  background: none;
-  color: #333;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 0.95rem;
-}
-
-.dropdown button:hover {
-  background-color: #f1f5f9;
-}
-
-/* ────────────────────────────────
-   Navbar Right Section
-──────────────────────────────── */
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-/* ────────────────────────────────
-   Notification Bell
-──────────────────────────────── */
-.notification-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.notification-icon {
-  width: 24px;
-  height: 24px;
-  color: #334155;
-  transition: transform 0.2s ease;
-}
-
-.notification-icon:hover {
-  transform: scale(1.1);
-}
-
-.notification-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background-color: #ef4444;
-  color: white;
-  font-size: 0.7rem;
-  font-weight: bold;
-  border-radius: 50%;
-  padding: 2px 6px;
-  line-height: 1;
-  box-shadow: 0 0 0 2px #f8fafc;
+  .page-content {
+    padding: 1rem 0.75rem;
+  }
 }

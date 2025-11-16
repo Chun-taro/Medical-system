@@ -1,202 +1,65 @@
-/* Container */
-.admin-notifications-container {
-  padding: 2rem;
-  max-width: 900px;
-  margin: 2rem auto;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', sans-serif;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.notification-dropdown {
+  position: absolute;
+  top: 50px; /* adjust based on bell icon position */
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  padding: 12px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* Heading */
-.admin-notifications-heading {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1e293b;
-  text-align: center;
-  margin-bottom: 1rem;
+.notification-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  border-width: 0 10px 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent #fff transparent;
 }
 
-/* Loading / Empty State */
-.loading-text,
-.empty-text {
-  font-style: italic;
-  color: #64748b;
-  text-align: center;
-  padding: 1rem 0;
-}
-
-/* Notification List */
-.admin-notifications-list {
+.dropdown-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
-/* Notification Items */
-.admin-notification-item {
-  background: #f9fafb;
-  border-left: 6px solid #3b82f6;
-  padding: 1.5rem;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  transition: transform 0.2s ease, background 0.2s ease;
+.dropdown-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  background-color: #fefefe;
+  border-radius: 6px;
+  margin-bottom: 6px;
 }
 
-.admin-notification-item.unread {
-  background: #e0f2fe;
+.dropdown-item.unread {
+  background-color: #f0f4ff;
+}
+
+.dropdown-message {
   font-weight: 500;
+  margin-bottom: 4px;
 }
 
-.admin-notification-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-/* Notification Message */
-.admin-notification-message {
-  font-size: 1rem;
-  color: #1e293b;
-  line-height: 1.5;
-}
-
-/* Metadata */
-.admin-notification-meta {
+.dropdown-meta {
+  font-size: 12px;
+  color: #666;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.8rem;
-  font-size: 0.85rem;
-  color: #475569;
-  align-items: center;
+  justify-content: space-between;
 }
 
-.admin-notification-type {
-  font-weight: 600;
-  color: #2563eb;
-  background: #dbeafe;
-  padding: 0.3rem 0.7rem;
-  border-radius: 8px;
-}
-
-.admin-notification-status {
-  text-transform: capitalize;
-  color: #10b981;
-  background: #d1fae5;
-  padding: 0.3rem 0.7rem;
-  border-radius: 8px;
-}
-
-.admin-notification-time {
-  margin-left: auto;
-  color: #64748b;
-  font-size: 0.8rem;
-}
-
-/* Mark as Read Button */
 .mark-read-btn {
-  margin-top: 0.7rem;
-  align-self: flex-end;
-  padding: 0.5rem 1rem;
-  background-color: #2563eb;
+  margin-top: 6px;
+  font-size: 12px;
+  background: #007bff;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.mark-read-btn:hover {
-  background-color: #1e40af;
-}
-
-/*  Notification Bell */
-.bell-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bell-icon {
-  width: 26px;
-  height: 26px;
-  cursor: pointer;
-  color: #1e293b;
-  transition: transform 0.2s ease;
-}
-
-.bell-icon:hover {
-  transform: scale(1.1);
-}
-
-/* Badge */
-.notification-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background-color: #ef4444;
-  color: white;
-  font-size: 0.7rem;
-  font-weight: bold;
-  border-radius: 50%;
-  padding: 3px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 0 2px #f8fafc;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .admin-notifications-container {
-    padding: 1.5rem;
-    margin: 1rem;
-  }
-
-  .admin-notifications-heading {
-    font-size: 1.6rem;
-  }
-
-  .admin-notification-item {
-    padding: 1.2rem;
-  }
-
-  .admin-notification-meta {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .admin-notification-time {
-    margin-left: 0;
-  }
-
-  .mark-read-btn {
-    width: 100%;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-notifications-container {
-    padding: 1rem;
-    margin: 0.5rem;
-  }
-
-  .admin-notification-message {
-    font-size: 0.95rem;
-  }
-
-  .admin-notification-meta {
-    font-size: 0.8rem;
-  }
 }

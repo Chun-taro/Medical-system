@@ -14,7 +14,6 @@ export default function PatientDashboard() {
       const userId = localStorage.getItem('userId');
       const token = localStorage.getItem('token');
       const role = localStorage.getItem('role');
-        
 
       if (!userId || !token) {
         setError('Missing user credentials. Please log in again.');
@@ -22,14 +21,12 @@ export default function PatientDashboard() {
         return;
       }
 
-      // Simple role check
       if (role !== 'patient') {
         console.log('Role check failed:', { role, expected: 'patient' });
         navigate('/unauthorized');
         return;
       }
 
-      //  Fetch appointments
       try {
         const res = await axios.get(`http://localhost:5000/api/appointments/patient/${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -66,7 +63,6 @@ export default function PatientDashboard() {
                 <th>Date</th>
                 <th>Type</th>
                 <th>Reason</th>
-                <th>Diagnosis</th>
                 <th>Management</th>
                 <th>Medicines</th>
               </tr>
@@ -78,7 +74,6 @@ export default function PatientDashboard() {
                   <td>{new Date(apt.appointmentDate).toLocaleDateString()}</td>
                   <td>{apt.typeOfVisit || '—'}</td>
                   <td>{apt.reasonForVisit || '—'}</td>
-                  <td>{apt.diagnosis || '—'}</td>
                   <td>{apt.management || '—'}</td>
                   <td>
                     {Array.isArray(apt.medicinesPrescribed)

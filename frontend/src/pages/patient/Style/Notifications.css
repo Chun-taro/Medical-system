@@ -1,63 +1,126 @@
-.notifications-page {
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 0 1px #e2e8f0;
-  max-width: 800px;
-  margin: 0 auto;
+.notification-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  padding: 12px;
 }
 
-.notifications-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: #1e293b;
-}
-
-.notifications-empty {
+.dropdown-header {
+  font-weight: bold;
+  margin-bottom: 8px;
   font-size: 1rem;
-  color: #64748b;
-  text-align: center;
-  margin-top: 2rem;
 }
 
-.notifications-list {
+.dropdown-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
-.notification-item {
-  background-color: #f9fafb;
-  padding: 1rem;
+.dropdown-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  background-color: #fefefe;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: background 0.3s ease;
+  margin-bottom: 6px;
 }
 
-.notification-item.approved {
-  border-left: 4px solid #22c55e;
+.dropdown-item.unread {
+  background-color: #f0f4ff;
 }
 
-.notification-item.declined {
-  border-left: 4px solid #ef4444;
-}
-
-.notification-item.rescheduled {
-  border-left: 4px solid #f59e0b;
-}
-
-.notification-message {
-  font-size: 1rem;
+.dropdown-message {
   font-weight: 500;
-  color: #1e293b;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+  word-break: break-word;
 }
 
-.notification-timestamp {
-  font-size: 0.85rem;
-  color: #64748b;
-  margin-top: 0.5rem;
+.dropdown-meta {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.mark-read-btn {
+  margin-top: 6px;
+  font-size: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.mark-read-btn:hover {
+  background: #005fa3;
+}
+
+/* ────────────────────────────────
+   Responsive Adjustments
+──────────────────────────────── */
+@media (max-width: 768px) {
+  .notification-dropdown {
+    top: 40px;
+    right: 0;
+    width: 280px;
+    padding: 10px;
+  }
+
+  .dropdown-header {
+    font-size: 0.95rem;
+  }
+
+  .dropdown-message {
+    font-size: 0.9rem;
+  }
+
+  .dropdown-meta {
+    font-size: 11px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mark-read-btn {
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notification-dropdown {
+    top: 38px;
+    right: 0;
+    width: 85vw;
+    padding: 8px;
+  }
+
+  .dropdown-header {
+    font-size: 0.9rem;
+  }
+
+  .dropdown-message {
+    font-size: 0.85rem;
+  }
+
+  .dropdown-meta {
+    font-size: 10px;
+  }
+
+  .mark-read-btn {
+    font-size: 10px;
+    padding: 3px 5px;
+  }
 }

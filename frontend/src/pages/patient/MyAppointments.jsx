@@ -80,7 +80,6 @@ export default function MyAppointments() {
                     <td>{new Date(app.appointmentDate).toLocaleDateString()}</td>
                     <td>{app.status}</td>
                     <td>
-                      <button onClick={() => alert(`Edit form for ${app.patientId?.firstName}`)}>✏️</button>
                       <button onClick={() => handleDelete(app._id)}>🗑️</button>
                     </td>
                   </tr>

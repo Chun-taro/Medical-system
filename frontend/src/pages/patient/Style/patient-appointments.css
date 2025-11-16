@@ -12,11 +12,13 @@
 .table-container {
   width: 100%;
   margin-top: 1rem;
+  overflow-x: auto; /* Enables horizontal scroll on small screens */
 }
 
 /* Table base */
 .appointments-table {
   width: 100%;
+  min-width: 600px; /* Prevents table from collapsing too much */
   border-collapse: collapse;
   background-color: #fff;
   border-radius: 12px;
@@ -61,6 +63,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .appointments-table td button {
@@ -83,8 +86,54 @@
   color: #cc0000;
 }
 
+.navbar-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.fb-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* Responsive adjustments */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .patient-appointments-container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+
+  .appointments-table th,
+  .appointments-table td {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .appointments-table td button {
+    font-size: 0.9rem;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .patient-appointments-container {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+
   .appointments-table th,
   .appointments-table td {
     padding: 0.5rem;
@@ -92,6 +141,11 @@
   }
 
   .appointments-table td button {
-    font-size: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .appointments-table td:last-child {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

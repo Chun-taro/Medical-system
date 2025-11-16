@@ -22,7 +22,7 @@ import Reports from './pages/admin/Reports';
 import ConsultationPage from './pages/admin/ConsultationPage';
 import Inventory from './pages/admin/Inventory';
 import AdminProfile from './pages/admin/AdminProfile';
-import AdminNotifications from './pages/admin/AdminNotifications';
+
 
 // Patient pages
 import PatientDashboard from './pages/patient/PatientDashboard';
@@ -105,14 +105,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin-notifications"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminNotifications />
-              </ProtectedRoute>
-            }
-          />
+          
 
           {/*  Patient Routes */}
           <Route

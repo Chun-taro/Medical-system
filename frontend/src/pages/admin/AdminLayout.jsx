@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Style/AdminDashboard.css';
+import './Style/AdminNotifications.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,9 +17,15 @@ import { toast } from 'react-toastify';
 export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = useRef(null);
+  const notificationRef = useRef(null);
+
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const admin = {
     firstName: (localStorage.getItem('firstName') || 'Admin').trim(),
@@ -33,7 +40,6 @@ export default function AdminLayout({ children }) {
     navigate('/', { replace: true });
   };
 
-  // fetch unread notifications
   const fetchUnreadCount = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -41,18 +47,53 @@ export default function AdminLayout({ children }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (res.ok) setUnreadCount(data.unreadCount); // 👈 same as patient
+      if (res.ok) setUnreadCount(data.unreadCount);
     } catch (err) {
       console.error('Error fetching unread notifications:', err);
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/notifications', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) setNotifications(data);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsRead = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`http://localhost:5000/api/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchNotifications();
+      fetchUnreadCount();
+    } catch (err) {
+      console.error('Error marking as read:', err);
+    }
+  };
+
   useEffect(() => {
     fetchUnreadCount();
+    fetchNotifications();
 
     const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target) &&
+        !notificationRef.current.contains(e.target)
+      ) {
         setDropdownOpen(false);
+        setShowNotifications(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -61,6 +102,7 @@ export default function AdminLayout({ children }) {
     socket.on('newAppointment', (data) => {
       toast.info(data.message);
       setUnreadCount((prev) => prev + 1);
+      fetchNotifications();
     });
 
     return () => {
@@ -109,10 +151,41 @@ export default function AdminLayout({ children }) {
 
           <div className="navbar-right">
             {/* Notification Bell */}
-            <div className="notification-wrapper" onClick={() => navigate('/admin-notifications')}>
-              <Bell className="notification-icon" />
-              {unreadCount > 0 && (
-                <span className="notification-badge">{unreadCount}</span>
+            <div className="notification-wrapper" ref={notificationRef}>
+              <div onClick={() => setShowNotifications(!showNotifications)}>
+                <Bell className="notification-icon" />
+                {unreadCount > 0 && (
+                  <span className="notification-badge">{unreadCount}</span>
+                )}
+              </div>
+
+              {showNotifications && (
+                <div className="notification-dropdown">
+                  <h4 className="dropdown-header">Notifications</h4>
+                  {loading ? (
+                    <p className="loading-text">Loading...</p>
+                  ) : notifications.length === 0 ? (
+                    <p className="empty-text">No notifications</p>
+                  ) : (
+                    <ul className="dropdown-list">
+                      {notifications.map((note) => (
+                        <li key={note._id} className={`dropdown-item ${note.read ? 'read' : 'unread'}`}>
+                          <div className="dropdown-message">{note.message}</div>
+                          <div className="dropdown-meta">
+                            <span>{note.type}</span>
+                            <span>{note.status}</span>
+                            <span>{new Date(note.timestamp).toLocaleString()}</span>
+                          </div>
+                          {!note.read && (
+                            <button className="mark-read-btn" onClick={() => markAsRead(note._id)}>
+                              Mark as Read
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               )}
             </div>
 
