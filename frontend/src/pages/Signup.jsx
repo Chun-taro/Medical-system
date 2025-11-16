@@ -3,39 +3,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Recaptcha from '../components/Recaptcha';
-import backgroundImage from './assets/building.png'; 
+import backgroundImage from './assets/building.png';
 
 export default function Signup() {
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    middleName: '',
-    email: '',
-    password: '',
-    role: 'patient',
-    idNumber: '',
-    sex: '',
-    civilStatus: '',
-    birthday: '',
-    age: '',
-    homeAddress: '',
-    contactNumber: '',
-    emergencyContact: {
-      name: '',
-      relationship: '',
-      phone: ''
-    },
-    bloodType: '',
-    allergies: [],
-    medicalHistory: [],
-    currentMedications: [],
-    familyHistory: {
-      diabetes: false,
-      hypertension: false,
-      heartDisease: false,
-      cancer: false,
-      other: ''
-    }
+    firstName: '', lastName: '', middleName: '', email: '', password: '',
+    role: 'patient', idNumber: '', sex: '', civilStatus: '', birthday: '',
+    age: '', homeAddress: '', contactNumber: '',
+    emergencyContact: { name: '', relationship: '', phone: '' },
+    bloodType: '', allergies: [], medicalHistory: [], currentMedications: [],
+    familyHistory: { diabetes: false, hypertension: false, heartDisease: false, cancer: false, other: '' }
   });
 
   const [recaptchaToken, setRecaptchaToken] = useState('');
@@ -43,7 +20,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleRecaptchaVerify = (token) => {
+  const handleRecaptchaVerify = token => {
     setRecaptchaToken(token);
     setRecaptchaError('');
   };
@@ -55,17 +32,14 @@ export default function Signup() {
 
   const handleSignup = async () => {
     const { firstName, lastName, email, password, idNumber, contactNumber } = form;
-
     if (!firstName || !lastName || !email || !password || !idNumber || !contactNumber) {
       alert('Please fill out all required fields.');
       return;
     }
-
     if (password.length < 6) {
       alert('Password must be at least 6 characters.');
       return;
     }
-
     if (!recaptchaToken) {
       setRecaptchaError('Please complete the reCAPTCHA verification.');
       return;
@@ -73,11 +47,9 @@ export default function Signup() {
 
     try {
       setLoading(true);
-      const res = await axios.post(
-        'http://localhost:5000/api/auth/signup',
-        { ...form, recaptchaToken },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      const res = await axios.post('http://localhost:5000/api/auth/signup', { ...form, recaptchaToken }, {
+        headers: { 'Content-Type': 'application/json' }
+      });
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('userId', res.data.userId);
@@ -93,20 +65,7 @@ export default function Signup() {
   };
 
   return (
-    <div
-      className="signup-wrapper"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative'
-      }}
-    >
+    <div className="signup-wrapper" style={{ backgroundImage: `url(${backgroundImage})` }}>
       <div className="signup-overlay"></div>
 
       <div className="signup-right">
@@ -118,13 +77,13 @@ export default function Signup() {
           </a>
 
           {/* Personal Info */}
-          <input type="text" placeholder="First Name *" value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })} />
-          <input type="text" placeholder="Last Name *" value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} />
+          <input type="text" placeholder="First Name *" required value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })} />
+          <input type="text" placeholder="Last Name *" required value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} />
           <input type="text" placeholder="Middle Name" value={form.middleName} onChange={e => setForm({ ...form, middleName: e.target.value })} />
-          <input type="text" placeholder="ID Number *" value={form.idNumber} onChange={e => setForm({ ...form, idNumber: e.target.value })} />
-          <input type="email" placeholder="Email Address *" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
-          <input type="password" placeholder="Password *" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
-          <input type="tel" placeholder="Contact Number *" value={form.contactNumber} onChange={e => setForm({ ...form, contactNumber: e.target.value })} />
+          <input type="text" placeholder="ID Number *" required value={form.idNumber} onChange={e => setForm({ ...form, idNumber: e.target.value })} />
+          <input type="email" placeholder="Email Address *" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+          <input type="password" placeholder="Password *" required value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+          <input type="tel" placeholder="Contact Number *" required value={form.contactNumber} onChange={e => setForm({ ...form, contactNumber: e.target.value })} />
           <input type="date" placeholder="Date of Birth" value={form.birthday} onChange={e => setForm({ ...form, birthday: e.target.value })} />
 
           <select value={form.sex} onChange={e => setForm({ ...form, sex: e.target.value })}>
@@ -152,9 +111,10 @@ export default function Signup() {
           </select>
 
           {/* Emergency Contact */}
-          <input type="text" placeholder="Emergency Contact Name" value={form.emergencyContact.name} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, name: e.target.value } })} />
-          <input type="text" placeholder="Emergency Contact Relationship" value={form.emergencyContact.relationship} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, relationship: e.target.value } })} />
-          <input type="tel" placeholder="Emergency Contact Phone" value={form.emergencyContact.phone} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, phone: e.target.value } })} />
+          <div className="section-divider">Emergency Contact</div>
+          <input type="text" placeholder="Contact Name" value={form.emergencyContact.name} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, name: e.target.value } })} />
+          <input type="text" placeholder="Relationship" value={form.emergencyContact.relationship} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, relationship: e.target.value } })} />
+          <input type="tel" placeholder="Phone Number" value={form.emergencyContact.phone} onChange={e => setForm({ ...form, emergencyContact: { ...form.emergencyContact, phone: e.target.value } })} />
 
           {/* Recaptcha */}
           <div className="recaptcha-container">

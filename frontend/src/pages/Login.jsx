@@ -117,8 +117,6 @@ export default function Login() {
         Forgot Password?
       </span>
     </p>
-
-    {/* Moved Google login below */}
     
   </form>
 </div>

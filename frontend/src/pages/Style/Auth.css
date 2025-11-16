@@ -129,10 +129,10 @@
 }
 
 .google-button {
-  background-color: transparent; /* Removes blue background */
+  background-color: transparent; 
   border: none;
   padding: 0;
-  margin: 0 auto; /* Centers the button */
+  margin: 0 auto; 
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -143,7 +143,7 @@
 
 
 .google-button:hover {
-  background-color: transparent; /* Prevents hover background */
+  background-color: transparent; 
   opacity: 1;
   outline: none;
   box-shadow: none;
