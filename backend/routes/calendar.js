@@ -4,10 +4,10 @@ const { getEvents, createEvent } = require('../controllers/calendarController');
 
 const router = express.Router();
 
-// GET upcoming events
+// GET /api/calendar/events → View upcoming events
 router.get('/events', auth, getEvents);
 
-// POST create new event
+// POST /api/calendar/events → Manually create an event
 router.post('/events', auth, createEvent);
 
 module.exports = router;

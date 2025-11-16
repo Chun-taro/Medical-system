@@ -2,9 +2,7 @@ const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const { sendNotification } = require('../utils/sendNotification');
 const sendEmail = require('../utils/mailer');
-
-
-
+const { createEvent } = require('../services/calendarService'); 
 
 // Book appointment
 const bookAppointment = async (req, res) => {
@@ -13,17 +11,17 @@ const bookAppointment = async (req, res) => {
       return res.status(403).json({ error: 'Only patients can book appointments' });
     }
 
-    const { appointmentDate, purpose } = req.body;
+    const { appointmentDate, purpose, typeOfVisit } = req.body;
     if (!appointmentDate || !purpose) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     const appointment = new Appointment({
-  patientId: req.user.userId,
-  appointmentDate,
-  purpose,
-  typeOfVisit: req.body.typeOfVisit || 'scheduled'
-});
+      patientId: req.user.userId,
+      appointmentDate,
+      purpose,
+      typeOfVisit: typeOfVisit || 'scheduled'
+    });
 
     await appointment.save();
 
@@ -46,12 +44,46 @@ const bookAppointment = async (req, res) => {
       recipientType: 'patient'
     });
 
+    // Sync to Google Calendar
+    if (req.user.googleAccessToken && req.user.googleRefreshToken) {
+      try {
+        console.log('Attempting to sync event to Google Calendar...');
+        console.log(' Tokens:', {
+          access: req.user.googleAccessToken,
+          refresh: req.user.googleRefreshToken
+        });
+
+        const calendarEvent = await createEvent({
+          user: req.user,
+          summary: 'Medical Appointment',
+          description: purpose,
+          start: appointment.appointmentDate,
+          end: new Date(new Date(appointment.appointmentDate).getTime() + 30 * 60000)
+        });
+
+        if (calendarEvent) {
+          console.log(' Calendar event synced:', calendarEvent.id);
+          appointment.calendarEventId = calendarEvent.id; 
+          await appointment.save(); t
+        } else {
+          console.warn(' Calendar event creation returned null');
+        }
+      } catch (calendarErr) {
+        console.error(' Calendar sync error:', calendarErr.response?.data || calendarErr.message);
+      }
+    } else {
+      console.warn('No Google tokens found on user object');
+    }
+
     res.status(201).json({ message: 'Appointment booked successfully' });
   } catch (err) {
-    console.error(' Booking error:', err.message);
+    console.error('Booking error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+
+
 
 //  Get current patient's appointments
 const getMyAppointments = async (req, res) => {

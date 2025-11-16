@@ -1,32 +1,28 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  //  Personal Info
+  // Personal Info
   firstName: {
     type: String,
-    required: function () {
-      return !this.googleId;
-    },
+    required: function () { return !this.googleId; },
     trim: true
   },
   lastName: {
     type: String,
-    required: function () {
-      return !this.googleId;
-    },
+    required: function () { return !this.googleId; },
     trim: true
   },
   middleName: { type: String, trim: true },
-  
+
   // Identification
   idNumber: {
     type: String,
     unique: true,
-    sparse: true, // Allows multiple null values
+    sparse: true,
     trim: true
   },
-  
-  //  Demographics
+
+  // Demographics
   sex: {
     type: String,
     enum: ['male', 'female', 'other'],
@@ -39,8 +35,8 @@ const userSchema = new mongoose.Schema({
   },
   birthday: { type: Date },
   age: { type: Number },
-  
-  //  Contact Information
+
+  // Contact Information
   homeAddress: { type: String, trim: true },
   contactNumber: { type: String, trim: true },
   emergencyContact: {
@@ -48,8 +44,8 @@ const userSchema = new mongoose.Schema({
     relationship: { type: String, trim: true },
     phone: { type: String, trim: true }
   },
-  
-  //  Medical Information
+
+  // Medical Information
   bloodType: {
     type: String,
     enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
@@ -58,8 +54,8 @@ const userSchema = new mongoose.Schema({
   allergies: [{ type: String, trim: true }],
   medicalHistory: [{ type: String, trim: true }],
   currentMedications: [{ type: String, trim: true }],
-  
-  //  Family History
+
+  // Family History
   familyHistory: {
     diabetes: { type: Boolean, default: false },
     hypertension: { type: Boolean, default: false },
@@ -69,77 +65,90 @@ const userSchema = new mongoose.Schema({
   },
 
   // Personal-Social History
-personalSocialHistory: {
-  smoking: { type: String, enum: ['yes', 'no'], default: 'no' },
-  smokingSticks: { type: Number, default: 0 },
-  drinking: { type: String, enum: ['yes', 'no'], default: 'no' },
-  drinkingStartYear: { type: String, trim: true },
-  drinkingFrequency: { type: String, trim: true }
-},
+  personalSocialHistory: {
+    smoking: { type: String, enum: ['yes', 'no'], default: 'no' },
+    smokingSticks: { type: Number, default: 0 },
+    drinking: { type: String, enum: ['yes', 'no'], default: 'no' },
+    drinkingStartYear: { type: String, trim: true },
+    drinkingFrequency: { type: String, trim: true }
+  },
 
-// Past Medical History
-pastMedicalHistory: {
-  asthma: { type: Boolean, default: false },
-  heartProblems: { type: Boolean, default: false },
-  seizures: { type: Boolean, default: false },
-  pneumonia: { type: Boolean, default: false },
-  typhoid: { type: Boolean, default: false },
-  tuberculosis: { type: Boolean, default: false },
-  chickenpox: { type: Boolean, default: false },
-  measles: { type: Boolean, default: false },
-  germanMeasles: { type: Boolean, default: false }
-},
+  // Past Medical History
+  pastMedicalHistory: {
+    asthma: { type: Boolean, default: false },
+    heartProblems: { type: Boolean, default: false },
+    seizures: { type: Boolean, default: false },
+    pneumonia: { type: Boolean, default: false },
+    typhoid: { type: Boolean, default: false },
+    tuberculosis: { type: Boolean, default: false },
+    chickenpox: { type: Boolean, default: false },
+    measles: { type: Boolean, default: false },
+    germanMeasles: { type: Boolean, default: false }
+  },
 
-// Previous Admissions and Operations
-admissionCount: { type: Number, default: 0 },
-admissionReason: { type: String, trim: true },
-operationDate: { type: Date },
-operationProcedure: { type: String, trim: true },
+  // Previous Admissions and Operations
+  admissionCount: { type: Number, default: 0 },
+  admissionReason: { type: String, trim: true },
+  operationDate: { type: Date },
+  operationProcedure: { type: String, trim: true },
 
-// Immunization History
-immunization: {
-  BCG: { type: Boolean, default: false },
-  HepatitisB: { type: Boolean, default: false },
-  Polio: { type: Boolean, default: false },
-  DPT: { type: Boolean, default: false }, 
-  MMR: { type: Boolean, default: false }, 
-  Chickenpox: { type: Boolean, default: false },
-  AntiRabies: { type: Boolean, default: false },
-  TetanusBooster: { type: Boolean, default: false }
-},
-lastAdmissionDate: { type: Date },
-lastAdmissionTypeLocation: { type: String, trim: true },
+  // Immunization History
+  immunization: {
+    BCG: { type: Boolean, default: false },
+    HepatitisB: { type: Boolean, default: false },
+    Polio: { type: Boolean, default: false },
+    DPT: { type: Boolean, default: false },
+    MMR: { type: Boolean, default: false },
+    Chickenpox: { type: Boolean, default: false },
+    AntiRabies: { type: Boolean, default: false },
+    TetanusBooster: { type: Boolean, default: false }
+  },
+  lastAdmissionDate: { type: Date },
+  lastAdmissionTypeLocation: { type: String, trim: true },
 
-  //  Login Info
+  // Login Info
   email: {
     type: String,
     required: true,
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email']
   },
   password: {
     type: String,
-    required: function () {
-      return !this.googleId;
-    },
+    required: function () { return !this.googleId; },
     minlength: 6
   },
   googleId: { type: String },
 
-  //  Role
+  // Google Calendar Integration
+   googleAccessToken: { type: String },
+  googleRefreshToken: { type: String },
+  googleTokenExpiry: { type: Date },
+
+  // Role
   role: {
     type: String,
     enum: ['patient', 'admin', 'doctor', 'nurse'],
     default: 'patient'
   },
 
-  //  Password Reset
+  // Password Reset
   resetToken: String,
   resetTokenExpiry: Date,
 
-  //  Profile Picture
+  // Profile Picture
   avatar: { type: String, default: '' }
 }, { timestamps: true });
+
+// Auto-calculate age from birthday
+userSchema.pre('save', function (next) {
+  if (this.birthday) {
+    const ageDiffMs = Date.now() - new Date(this.birthday).getTime();
+    this.age = Math.floor(ageDiffMs / (1000 * 60 * 60 * 24 * 365.25));
+  }
+  next();
+});
 
 module.exports = mongoose.model('User', userSchema);
