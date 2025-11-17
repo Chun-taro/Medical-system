@@ -1,5 +1,6 @@
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
+const { google } = require('googleapis');
 const { sendNotification } = require('../utils/sendNotification');
 const sendEmail = require('../utils/mailer');
 
@@ -206,6 +207,94 @@ const approveAppointment = async (req, res) => {
       } catch (emailErr) {
         console.error('Email send error:', emailErr.message);
         
+      }
+    }
+
+    // Create Google Calendar event in patient's calendar if they have connected Google
+    try {
+      const startDate = new Date(updated.appointmentDate);
+      const endDate = new Date(startDate.getTime() + (30 * 60 * 1000));
+
+      const event = {
+        summary: 'Clinic Appointment',
+        description: `Appointment for ${patient.firstName || ''} ${patient.lastName || ''} - ${updated.purpose || ''}`,
+        start: { dateTime: startDate.toISOString(), timeZone: 'Asia/Manila' },
+        end: { dateTime: endDate.toISOString(), timeZone: 'Asia/Manila' },
+        attendees: patient.email ? [{ email: patient.email }] : [],
+        reminders: { useDefault: true }
+      };
+
+      // Try to create the event as the patient (best UX)
+      if (patient.googleRefreshToken || patient.googleAccessToken) {
+        const oauth2Client = new google.auth.OAuth2(
+          process.env.GOOGLE_CALENDAR_CLIENT_ID,
+          process.env.GOOGLE_CALENDAR_CLIENT_SECRET,
+          process.env.GOOGLE_CALENDAR_REDIRECT_URI
+        );
+
+        if (patient.googleRefreshToken) {
+          // Use refresh token to obtain a fresh access token
+          oauth2Client.setCredentials({ refresh_token: patient.googleRefreshToken });
+          try {
+            const access = await oauth2Client.getAccessToken();
+            if (access && access.token) {
+              oauth2Client.setCredentials({ access_token: access.token, refresh_token: patient.googleRefreshToken });
+            }
+          } catch (refreshErr) {
+            // If refresh fails, throw to trigger fallback
+            throw refreshErr;
+          }
+        } else {
+          oauth2Client.setCredentials({ access_token: patient.googleAccessToken });
+        }
+
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+        const resp = await calendar.events.insert({ calendarId: 'primary', resource: event });
+        console.log('Google Calendar event created (patient):', resp.data.id);
+      } else {
+        // No patient tokens — fall through to clinic invite flow
+        throw new Error('No patient Google tokens');
+      }
+    } catch (patientErr) {
+      // Fallback: create event on clinic account and invite patient by email
+      try {
+        if (!patient.email) throw new Error('No patient email to invite');
+
+        const clinicOauth = new google.auth.OAuth2(
+          process.env.GOOGLE_CALENDAR_CLIENT_ID,
+          process.env.GOOGLE_CALENDAR_CLIENT_SECRET,
+          process.env.GOOGLE_CALENDAR_REDIRECT_URI
+        );
+
+        if (process.env.GOOGLE_CALENDAR_REFRESH_TOKEN) {
+          clinicOauth.setCredentials({ refresh_token: process.env.GOOGLE_CALENDAR_REFRESH_TOKEN });
+          const access = await clinicOauth.getAccessToken();
+          if (access && access.token) clinicOauth.setCredentials({ access_token: access.token, refresh_token: process.env.GOOGLE_CALENDAR_REFRESH_TOKEN });
+        } else if (process.env.GOOGLE_CALENDAR_ACCESS_TOKEN) {
+          clinicOauth.setCredentials({ access_token: process.env.GOOGLE_CALENDAR_ACCESS_TOKEN });
+        } else {
+          throw new Error('Clinic calendar credentials not configured');
+        }
+
+        const calendar = google.calendar({ version: 'v3', auth: clinicOauth });
+
+        const startDate = new Date(updated.appointmentDate);
+        const endDate = new Date(startDate.getTime() + (30 * 60 * 1000));
+
+        const inviteEvent = {
+          summary: 'Clinic Appointment',
+          description: `Appointment for ${patient.firstName || ''} ${patient.lastName || ''} - ${updated.purpose || ''}`,
+          start: { dateTime: startDate.toISOString(), timeZone: 'Asia/Manila' },
+          end: { dateTime: endDate.toISOString(), timeZone: 'Asia/Manila' },
+          attendees: [{ email: patient.email }],
+          reminders: { useDefault: true }
+        };
+
+        const resp = await calendar.events.insert({ calendarId: 'primary', resource: inviteEvent, sendUpdates: 'all' });
+        console.log('Google Calendar invite created (clinic):', resp.data.id);
+      } catch (clinicErr) {
+        console.error('Clinic calendar invite error:', clinicErr && clinicErr.message ? clinicErr.message : clinicErr);
+        console.error('Patient calendar error:', patientErr && patientErr.message ? patientErr.message : patientErr);
       }
     }
 

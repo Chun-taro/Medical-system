@@ -46,7 +46,14 @@ const signup = async (req, res) => {
 // Local login
 const login = async (req, res) => {
   try {
+    // Log incoming login attempt for debugging (remove in production)
+    console.log('Login attempt body:', req.body);
     const { email, password } = req.body;
+
+    // Validate input and provide clearer error messages
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
 
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: 'Invalid credentials' });
@@ -173,3 +180,4 @@ module.exports = {
   validateToken,
   googleSignup,
   googleCalendarCallback
+};
