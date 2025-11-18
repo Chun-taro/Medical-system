@@ -220,17 +220,24 @@ export default function Reports() {
                           )}
                       </ul>
 
-                      <div style={{ backgroundColor: '#f0f7ff', padding: '0.75rem', borderRadius: '6px', marginBottom: '0.75rem' }}>
-                        <h5 style={{ marginTop: 0, marginBottom: '0.5rem', color: '#1e40af' }}>📊 Vitals</h5>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.9rem' }}>
-                          <p style={{ margin: 0 }}><strong>Blood Pressure:</strong> {selected.bloodPressure || '—'}</p>
-                          <p style={{ margin: 0 }}><strong>Temperature:</strong> {selected.temperature || '—'}°C</p>
-                          <p style={{ margin: 0 }}><strong>Heart Rate:</strong> {selected.heartRate || '—'} bpm</p>
-                          <p style={{ margin: 0 }}><strong>O₂ Saturation:</strong> {selected.oxygenSaturation || '—'}%</p>
-                          <p style={{ margin: 0 }}><strong>BMI:</strong> {selected.bmi || '—'}</p>
-                          <p style={{ margin: 0 }}><strong>BMI Intervention:</strong> {selected.bmiIntervention || '—'}</p>
-                        </div>
-                      </div>
+                      <p>
+                        <strong>Blood Pressure:</strong> {selected.bloodPressure || '—'}
+                      </p>
+                      <p>
+                        <strong>Temperature:</strong> {selected.temperature || '—'}°C
+                      </p>
+                      <p>
+                        <strong>Heart Rate:</strong> {selected.heartRate || '—'} bpm
+                      </p>
+                      <p>
+                        <strong>O₂ Saturation:</strong> {selected.oxygenSaturation || '—'}%
+                      </p>
+                      <p>
+                        <strong>BMI:</strong> {selected.bmi || '—'}
+                      </p>
+                      <p>
+                        <strong>BMI Intervention:</strong> {selected.bmiIntervention || '—'}
+                      </p>
                       <p>
                         <strong>Referred:</strong>{" "}
                         {selected.referredToPhysician

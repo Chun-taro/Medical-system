@@ -19,6 +19,10 @@ export default function Inventory() {
   //  Modal state
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [dispenseHistory, setDispenseHistory] = useState([]);
+  // History filters
+  const [historyNameFilter, setHistoryNameFilter] = useState('');
+  const [historyStartDateFilter, setHistoryStartDateFilter] = useState('');
+  const [historyEndDateFilter, setHistoryEndDateFilter] = useState('');
 
   const fetchInventory = async () => {
     try {
@@ -130,6 +134,29 @@ export default function Inventory() {
     return 'Available';
   };
 
+  // Filter dispense history
+  const filteredDispenseHistory = dispenseHistory.filter(record => {
+    // Name filter
+    if (historyNameFilter) {
+      const q = historyNameFilter.toLowerCase();
+      if (!record.medicineName.toLowerCase().includes(q)) return false;
+    }
+
+    // Date filters
+    if (historyStartDateFilter) {
+      const start = new Date(historyStartDateFilter);
+      const recordDate = new Date(record.dispensedAt);
+      if (recordDate < new Date(start.getFullYear(), start.getMonth(), start.getDate())) return false;
+    }
+    if (historyEndDateFilter) {
+      const end = new Date(historyEndDateFilter);
+      const recordDate = new Date(record.dispensedAt);
+      if (recordDate > new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23, 59, 59)) return false;
+    }
+
+    return true;
+  });
+
   return (
     <AdminLayout>
       <div className="inventory-container">
@@ -205,7 +232,26 @@ export default function Inventory() {
             <div className="modal-content">
               <h3>Dispense History</h3>
               <button className="close-btn" onClick={() => setShowHistoryModal(false)}>Close</button>
-              {dispenseHistory.length === 0 ? (
+              
+              {/* History Filters */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="Search by medicine name..."
+                  value={historyNameFilter}
+                  onChange={e => setHistoryNameFilter(e.target.value)}
+                  style={{ padding: '8px', minWidth: '180px' }}
+                />
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                  From <input type="date" value={historyStartDateFilter} onChange={e => setHistoryStartDateFilter(e.target.value)} />
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                  To <input type="date" value={historyEndDateFilter} onChange={e => setHistoryEndDateFilter(e.target.value)} />
+                </label>
+                <button onClick={() => { setHistoryNameFilter(''); setHistoryStartDateFilter(''); setHistoryEndDateFilter(''); }}>Clear</button>
+              </div>
+
+              {filteredDispenseHistory.length === 0 ? (
                 <p>No dispense records found.</p>
               ) : (
                 <div className="table-wrapper">
@@ -219,7 +265,7 @@ export default function Inventory() {
   </tr>
 </thead>
 <tbody>
-  {dispenseHistory
+  {filteredDispenseHistory
     .slice()
     .sort((a, b) => new Date(b.dispensedAt) - new Date(a.dispensedAt))
     .map((record, index) => (
