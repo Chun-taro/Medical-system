@@ -232,9 +232,9 @@ const approveAppointment = async (req, res) => {
       // Try to create the event as the patient (best UX)
       if (patient.googleRefreshToken || patient.googleAccessToken) {
         const oauth2Client = new google.auth.OAuth2(
-          process.env.GOOGLE_CALENDAR_CLIENT_ID,
-          process.env.GOOGLE_CALENDAR_CLIENT_SECRET,
-          process.env.GOOGLE_CALENDAR_REDIRECT_URI
+          process.env.GOOGLE_CLIENT_ID,
+          process.env.GOOGLE_CLIENT_SECRET,
+          process.env.GOOGLE_REDIRECT_URI
         );
 
         if (patient.googleRefreshToken) {
