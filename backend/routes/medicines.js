@@ -7,7 +7,8 @@ const {
   deductMedicines,
   deleteMedicine,
   getDispenseHistory ,
-  getAllDispenseHistory
+  getAllDispenseHistory,
+  generateDispenseHistoryPDF
 } = require('../controllers/medicineController');
 
 const { auth } = require('../middleware/auth');
@@ -19,5 +20,6 @@ router.delete('/:id', auth, deleteMedicine);
 router.post('/:id/dispense', auth, dispenseCapsules);
 router.get('/:id/history', auth, getDispenseHistory);
 router.get('/history', auth, getAllDispenseHistory);
+router.get('/history/pdf', generateDispenseHistoryPDF);
 
 module.exports = router;

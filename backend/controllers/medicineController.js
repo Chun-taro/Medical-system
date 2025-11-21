@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const Medicine = require('../models/Medicine');
 const jwt = require('jsonwebtoken');
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
 
 // Get all medicines (admin or superadmin only)
 const getAllMedicines = async (req, res) => {
@@ -94,7 +97,7 @@ const dispenseCapsules = async (req, res) => {
       quantity,
       dispensedBy: userId ? new mongoose.Types.ObjectId(userId) : null,
       dispensedAt: new Date(),
-      source: appointmentId ? 'consultation' : 'manual' 
+      source: appointmentId ? 'consultation' : 'manual'
     });
 
     await med.save();
@@ -149,7 +152,7 @@ const deductMedicines = async (req, res) => {
         quantity: qty,
         dispensedBy: userId ? new mongoose.Types.ObjectId(userId) : null,
         dispensedAt: new Date(),
-        source: 'consultation' 
+        source: 'consultation'
       });
 
       await med.save();
@@ -221,9 +224,9 @@ const getAllDispenseHistory = async (req, res) => {
       med.dispenseHistory.forEach(record => {
         const sourceLabel =
           record.source === 'consultation'
-            ? 'Consultation Dispense'
+            ? 'consultation dispence'
             : record.source === 'manual'
-            ? 'Manual Dispense'
+            ? 'manual dispence'
             : 'Unknown';
 
         allHistory.push({
@@ -232,7 +235,7 @@ const getAllDispenseHistory = async (req, res) => {
           dispensedAt: record.dispensedAt,
           dispensedBy: record.dispensedBy,
           appointmentId: record.appointmentId,
-          source: sourceLabel 
+          source: sourceLabel
         });
       });
     });
@@ -244,6 +247,171 @@ const getAllDispenseHistory = async (req, res) => {
   }
 };
 
+// Generate PDF report for dispense history
+const generateDispenseHistoryPDF = async (req, res) => {
+  try {
+    const { startDate, endDate, medicineName } = req.query;
+
+    // Check if any filters are applied
+    if (!startDate && !endDate && !medicineName) {
+      return res.status(400).json({ error: 'Please apply at least one filter (start date, end date, or medicine name) to generate the dispense history report.' });
+    }
+
+    const medicines = await Medicine.find({}, 'name dispenseHistory')
+      .populate('dispenseHistory.appointmentId', 'firstName lastName appointmentDate')
+      .populate('dispenseHistory.dispensedBy', 'name');
+
+    const allHistory = [];
+    medicines.forEach(med => {
+      med.dispenseHistory.forEach(record => {
+        if (medicineName && !med.name.toLowerCase().includes(medicineName.toLowerCase())) return;
+        if (startDate) {
+          const start = new Date(startDate);
+          start.setUTCHours(0, 0, 0, 0);
+          if (new Date(record.dispensedAt) < start) return;
+        }
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setUTCHours(23, 59, 59, 999);
+          if (new Date(record.dispensedAt) > end) return;
+        }
+
+        const sourceLabel =
+          record.source === 'consultation'
+            ? 'consultation dispence'
+            : record.source === 'manual'
+            ? 'manual dispence'
+            : 'Unknown';
+
+        allHistory.push({
+          medicineName: med.name,
+          quantity: record.quantity,
+          dispensedAt: record.dispensedAt,
+          dispensedBy: record.dispensedBy ? record.dispensedBy.name : 'Unknown',
+          appointmentId: record.appointmentId,
+          source: sourceLabel
+        });
+      });
+    });
+
+    // Sort by dispensedAt descending
+    allHistory.sort((a, b) => new Date(b.dispensedAt) - new Date(a.dispensedAt));
+
+    // Create PDF
+    const doc = new PDFDocument();
+    const buffers = [];
+    doc.on('data', (chunk) => buffers.push(chunk));
+    doc.on('end', () => {
+      const pdfBuffer = Buffer.concat(buffers);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=dispense-history-report.pdf');
+      res.send(pdfBuffer);
+    });
+
+    // Add header for first page
+    doc.fontSize(20).text('Medical System - Dispense History Report', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.moveDown();
+
+    // Filters (only on first page)
+    if (startDate || endDate || medicineName) {
+      doc.fontSize(10).text('Filters Applied:', { underline: true });
+      if (startDate) doc.text(`From: ${new Date(startDate).toLocaleDateString()}`);
+      if (endDate) doc.text(`To: ${new Date(endDate).toLocaleDateString()}`);
+      if (medicineName) doc.text(`Medicine: ${medicineName}`);
+      doc.moveDown();
+    }
+
+    if (allHistory.length === 0) {
+      doc.fontSize(14).text('No dispense history records found for the applied filters.', { align: 'center' });
+    } else {
+      // Table header
+      const tableTop = doc.y;
+      doc.fontSize(10);
+      doc.text('Medicine', 50, tableTop);
+      doc.text('Quantity', 150, tableTop);
+      doc.text('Dispensed', 220, tableTop);
+      doc.text('Source', 350, tableTop);
+
+      doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+
+      let y = tableTop + 25;
+      allHistory.forEach(record => {
+        if (y > 600) { // New page if needed, leaving more space for footer
+          doc.addPage();
+          // Add header for new page (smaller font to fit)
+          doc.fontSize(16).text('Medical System - Dispense History Report', { align: 'center' });
+          doc.moveDown();
+          doc.fontSize(10).text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
+          doc.moveDown();
+          // Add table header on new page
+          doc.fontSize(10);
+          doc.text('Medicine', 50, doc.y);
+          doc.text('Quantity', 150, doc.y);
+          doc.text('Dispensed', 220, doc.y);
+          doc.text('Source', 350, doc.y);
+          doc.moveTo(50, doc.y + 15).lineTo(550, doc.y + 15).stroke();
+          y = doc.y + 25; // Start table after header
+        }
+
+        doc.text(record.medicineName, 50, y);
+        doc.text(record.quantity.toString(), 150, y);
+        doc.text(new Date(record.dispensedAt).toLocaleString(), 220, y);
+        doc.text(record.source, 350, y);
+        doc.moveTo(50, y + 15).lineTo(550, y + 15).stroke();
+        y += 20;
+      });
+
+    }
+
+    doc.end();
+
+    // Add footer and digital signature to all pages
+    const totalPages = doc.pageNumber;
+    for (let i = 0; i < totalPages; i++) {
+      doc.switchToPage(i);
+      // Add footer at the bottom
+      doc.fontSize(10);
+      doc.text('Medical System - Dispense History Report', 50, doc.page.height - 100, { align: 'left' });
+      doc.text('This report is generated electronically.', doc.page.width - 50, doc.page.height - 90, { align: 'right' });
+      doc.text(`Page ${i + 1} of ${totalPages}`, doc.page.width / 2, doc.page.height - 80, { align: 'center' });
+      // Add digital signature to all pages
+      doc.text('Digital Signature:', doc.page.width - 50, doc.page.height - 65, { align: 'right' });
+      doc.lineWidth(3).moveTo(doc.page.width - 200, doc.page.height - 60).lineTo(doc.page.width - 50, doc.page.height - 60).stroke();
+      doc.text('Validated by Medical System on ' + new Date().toLocaleDateString(), doc.page.width - 50, doc.page.height - 55, { align: 'right' });
+    }
+
+  } catch (err) {
+    console.error('PDF generation error:', err.message);
+    res.status(500).json({ error: 'Failed to generate PDF' });
+  }
+
+
+
+
+
+
+  // Add footer and digital signature to all pages BEFORE ending the document
+const totalPages = doc.bufferedPageRange().count;
+for (let i = 0; i < totalPages; i++) {
+  doc.switchToPage(i);
+  const pageHeight = doc.page.height;
+  const pageWidth = doc.page.width;
+
+  doc.fontSize(10);
+  doc.text('Medical System - Dispense History Report', 50, pageHeight - 100, { align: 'left' });
+  doc.text('This report is generated electronically.', pageWidth - 50, pageHeight - 90, { align: 'right' });
+  doc.text(`Page ${i + 1} of ${totalPages}`, pageWidth / 2, pageHeight - 80, { align: 'center' });
+
+  doc.text('Digital Signature:', pageWidth - 50, pageHeight - 65, { align: 'right' });
+  doc.lineWidth(3).moveTo(pageWidth - 200, pageHeight - 60).lineTo(pageWidth - 50, pageHeight - 60).stroke();
+  doc.text('Validated by Medical System on ' + new Date().toLocaleDateString(), pageWidth - 50, pageHeight - 55, { align: 'right' });
+}
+
+doc.end(); // Finalize after all pages are updated
+};
+
 module.exports = {
   getAllMedicines,
   createMedicine,
@@ -251,5 +419,6 @@ module.exports = {
   deductMedicines,
   deleteMedicine,
   getDispenseHistory,
-  getAllDispenseHistory
+  getAllDispenseHistory,
+  generateDispenseHistoryPDF
 };

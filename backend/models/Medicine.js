@@ -19,7 +19,8 @@ const medicineSchema = new mongoose.Schema({
       appointmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' },
       quantity: Number,
       dispensedAt: { type: Date, default: Date.now },
-      dispensedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+      dispensedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      source: String
     }
   ]
 }, { timestamps: true });

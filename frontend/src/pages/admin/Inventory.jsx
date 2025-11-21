@@ -128,6 +128,32 @@ export default function Inventory() {
     }
   };
 
+  const handlePrintReport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const params = new URLSearchParams();
+      if (historyStartDateFilter) params.append('startDate', historyStartDateFilter);
+      if (historyEndDateFilter) params.append('endDate', historyEndDateFilter);
+      if (historyNameFilter) params.append('medicineName', historyNameFilter);
+
+      const response = await axios.get(`http://localhost:5000/api/medicines/history/pdf?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'dispense-history-report.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Error generating PDF:', err.message);
+      alert('Failed to generate PDF report');
+    }
+  };
+
   const getStatus = medicine => {
     if (medicine.quantityInStock <= 0) return 'Out of Stock';
     if (medicine.expiryDate && new Date(medicine.expiryDate) < new Date()) return 'Expired';
@@ -231,8 +257,11 @@ export default function Inventory() {
           <div className="modal-overlay">
             <div className="modal-content">
               <h3>Dispense History</h3>
-              <button className="close-btn" onClick={() => setShowHistoryModal(false)}>Close</button>
-              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button className="close-btn" onClick={() => setShowHistoryModal(false)}>Close</button>
+                <button onClick={handlePrintReport} style={{ padding: '8px 12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Print PDF</button>
+              </div>
+
               {/* History Filters */}
               <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
@@ -273,7 +302,7 @@ export default function Inventory() {
         <td>{record.medicineName}</td>
         <td>{record.quantity}</td>
         <td>{new Date(record.dispensedAt).toLocaleString()}</td>
-        <td>{record.source === 'consultation' ? 'Consultation' : 'Manual Dispense'}</td>
+        <td>{record.source}</td>
       </tr>
     ))}
 </tbody>
