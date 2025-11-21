@@ -489,15 +489,12 @@ const generateReports = async (req, res) => {
   }
 };
 
-//  Get consultations (all with diagnosis or medical certificates)
+//  Get consultations (only those with diagnosis)
 const getConsultations = async (req, res) => {
   try {
     // Populate patient basic info (firstName, lastName) from User when available.
     const consultations = await Appointment.find({
-      $or: [
-        { diagnosis: { $ne: null } },
-        { purpose: 'Medical Certificate', status: 'completed' }
-      ]
+      diagnosis: { $ne: null }
     })
       .populate('patientId', 'firstName lastName email contactNumber')
       .select(
@@ -509,6 +506,28 @@ const getConsultations = async (req, res) => {
     res.json(consultations);
   } catch (err) {
     console.error(' Consultations error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+//  Get medical certificates (purpose: 'Medical Certificate', status: 'completed')
+const getMedicalCertificates = async (req, res) => {
+  try {
+    // Populate patient basic info (firstName, lastName) from User when available.
+    const medicalCertificates = await Appointment.find({
+      purpose: 'Medical Certificate',
+      status: 'completed'
+    })
+      .populate('patientId', 'firstName lastName email contactNumber')
+      .select(
+        'patientId firstName lastName appointmentDate consultationCompletedAt purpose status diagnosis fitToWork fitToWorkFrom fitToWorkTo restDays remarks'
+      )
+      .sort({ consultationCompletedAt: -1 })
+      .lean();
+
+    res.json(medicalCertificates);
+  } catch (err) {
+    console.error(' Medical certificates error:', err.message);
     res.status(500).json({ error: err.message });
   }
 };
@@ -745,8 +764,13 @@ const generateCertificatePDF = async (req, res) => {
           <div class="certificate-content">
             <p>This is to certify that</p>
             <p><strong>${patient.firstName} ${patient.lastName}</strong></p>
-            <p>has been examined and is found to be in good health and fit for work/school.</p>
-            <p>The examination was conducted on <strong>${new Date().toLocaleDateString()}</strong>.</p>
+            <p><strong>Purpose:</strong> ${appointment.purpose || 'Medical Certificate'}</p>
+            <p><strong>Diagnosis:</strong> ${appointment.diagnosis || 'N/A'}</p>
+            <p><strong>Fit to Work:</strong> ${appointment.fitToWork === 'yes' ? 'Yes' : appointment.fitToWork === 'no' ? 'No' : 'N/A'}</p>
+            ${appointment.fitToWork === 'yes' ? `<p><strong>Fit to Work From:</strong> ${appointment.fitToWorkFrom ? new Date(appointment.fitToWorkFrom).toLocaleDateString() : 'N/A'}</p><p><strong>Fit to Work To:</strong> ${appointment.fitToWorkTo ? new Date(appointment.fitToWorkTo).toLocaleDateString() : 'N/A'}</p>` : ''}
+            ${appointment.fitToWork === 'no' ? `<p><strong>Rest Days:</strong> ${appointment.restDays || 'N/A'}</p>` : ''}
+            <p><strong>Remarks:</strong> ${appointment.remarks || 'N/A'}</p>
+            <p>The examination was conducted on <strong>${appointment.consultationCompletedAt ? new Date(appointment.consultationCompletedAt).toLocaleDateString() : new Date().toLocaleDateString()}</strong>.</p>
             <p><strong>Report ID:</strong> ${appointment._id}</p>
           </div>
         </div>
@@ -793,6 +817,7 @@ module.exports = {
   completeConsultation,
   generateReports,
   getConsultations,
+  getMedicalCertificates,
   getConsultationById,
   updateAppointment,
   saveConsultation,

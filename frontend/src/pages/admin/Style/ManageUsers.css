@@ -117,3 +117,115 @@
     padding: 4px 6px;
   }
 }
+
+/* Popup Styles */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.popup-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 0;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+  overflow: hidden;
+}
+
+.popup-header {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px 30px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.popup-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.popup-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.popup-body {
+  padding: 30px;
+  text-align: center;
+  color: white;
+}
+
+.popup-body p {
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.popup-footer {
+  padding: 20px 30px 30px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.popup-btn-primary {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.popup-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .popup-content {
+    margin: 20px;
+    width: calc(100% - 40px);
+  }
+
+  .popup-header, .popup-body, .popup-footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .popup-icon {
+    font-size: 2.5rem;
+  }
+
+  .popup-header h3 {
+    font-size: 1.3rem;
+  }
+}

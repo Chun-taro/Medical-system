@@ -10,6 +10,8 @@ export default function ManageUsers() {
   const [activeTab, setActiveTab] = useState('admin');
   const [nameSearch, setNameSearch] = useState('');
   const [idSearch, setIdSearch] = useState('');
+  const [currentUserRole, setCurrentUserRole] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -19,6 +21,12 @@ export default function ManageUsers() {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsers(res.data);
+
+        // Also fetch current user info to get their role
+        const userRes = await axios.get('http://localhost:5000/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setCurrentUserRole(userRes.data.role);
       } catch (err) {
         console.error('Error fetching users:', err.response?.data || err.message);
         setError(err.response?.data?.error || 'Failed to load users');
@@ -31,6 +39,12 @@ export default function ManageUsers() {
   }, []);
 
   const handleRoleChange = async (id, newRole) => {
+    // Check if trying to change to superadmin and current user is not superadmin
+    if (newRole === 'superadmin' && currentUserRole !== 'superadmin') {
+      setShowPopup(true);
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       await axios.put(
@@ -44,6 +58,16 @@ export default function ManageUsers() {
       );
     } catch (err) {
       console.error('Error updating role:', err.message);
+      // Provide user-friendly error message without technical details
+      // Check if server error message contains technical details and filter them out
+      const serverError = err.response?.data?.error;
+      let errorMessage = 'Unable to update user role. Please check your connection and try again.';
+
+      if (serverError && !serverError.includes('localhost') && !serverError.includes('5000') && !serverError.includes('http')) {
+        errorMessage = serverError;
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -153,6 +177,25 @@ export default function ManageUsers() {
             {activeTab === 'superadmin' && renderTable('superadmin')}
           </div>
         </>
+      )}
+
+      {/* Custom Popup */}
+      {showPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <div className="popup-header">
+              <div className="popup-icon">🔒</div>
+              <h3>Super Admin Access Required</h3>
+            </div>
+            <div className="popup-body">
+              <p>You need Super Admin privileges to modify user roles.</p>
+              <p>Please contact your Super Administrator for assistance.</p>
+            </div>
+            <div className="popup-footer">
+              <button className="popup-btn-primary" onClick={() => setShowPopup(false)}>Understood</button>
+            </div>
+          </div>
+        </div>
       )}
     </AdminLayout>
   );

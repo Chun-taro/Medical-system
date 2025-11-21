@@ -108,43 +108,42 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <div className="admin-dashboard-container">
-        {/* Stats Section */}
-        <div className="dashboard-left">
+        {/* Top: Cards and Calendar */}
+        <div className="dashboard-top">
           <h2 className="dashboard-heading">📊 Dashboard Overview</h2>
-          <div className="stats-grid">
-            <div className="stat-card blue">
-              <h3>Total Appointments</h3>
-              <p>{stats.totalAppointments}</p>
+          <div className="top-row">
+            <div className="stats-grid">
+              <div className="stat-card blue">
+                <h3>Total Appointments</h3>
+                <p>{stats.totalAppointments}</p>
+              </div>
+              <div className="stat-card green">
+                <h3>Total Users</h3>
+                <p>{stats.totalUsers}</p>
+              </div>
+              <div className="stat-card yellow">
+                <h3>Today's Appointments</h3>
+                <p>{stats.todayAppointments}</p>
+              </div>
             </div>
-            <div className="stat-card green">
-              <h3>Total Users</h3>
-              <p>{stats.totalUsers}</p>
-            </div>
-            <div className="stat-card yellow">
-              <h3>Today's Appointments</h3>
-              <p>{stats.todayAppointments}</p>
+            <div className="calendar-card">
+              <h2 className="dashboard-heading">📅 Calendar</h2>
+              <Calendar
+                value={selectedDate}
+                onChange={setSelectedDate}
+                className="styled-calendar"
+                tileClassName={highlightDates}
+              />
             </div>
           </div>
+        </div>
 
-          {/* Graph */}
+        {/* Bottom: Graph and Appointments */}
+        <div className="dashboard-bottom">
           <div className="chart-section">
             <h3>📈 Metrics Graph</h3>
             <Bar data={chartData} />
           </div>
-        </div>
-
-        {/* Calendar Section */}
-        <div className="dashboard-right">
-          <div className="calendar-card">
-            <h2 className="dashboard-heading">📅 Calendar</h2>
-            <Calendar
-              value={selectedDate}
-              onChange={setSelectedDate}
-              className="styled-calendar"
-              tileClassName={highlightDates}
-            />
-          </div>
-
           <div className="appointment-section">
             <h3 className="appointment-title">
               Appointments for {selectedDate.toDateString()}

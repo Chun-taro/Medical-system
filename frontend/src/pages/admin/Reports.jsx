@@ -25,20 +25,23 @@ export default function Reports() {
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
 
+
   const toggleExpand = (id) => {
     setExpandedId((prev) => (prev === id ? null : id));
   };
 
   useEffect(() => {
-    const fetchConsultations = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const consultRes = await axios.get(
-          "http://localhost:5000/api/appointments/consultations",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const endpoint = activeTab === 'consultations'
+          ? "http://localhost:5000/api/appointments/consultations"
+          : "http://localhost:5000/api/appointments/medical-certificates";
+        const res = await axios.get(endpoint, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-        const sortedConsultations = consultRes.data.sort((a, b) => {
+        const sortedData = res.data.sort((a, b) => {
           const dateA = new Date(
             a.consultationCompletedAt || a.appointmentDate || 0
           );
@@ -48,18 +51,18 @@ export default function Reports() {
           return dateB - dateA;
         });
 
-        setConsultations(sortedConsultations);
+        setConsultations(sortedData);
         // Reset expandedId when tab changes
         setExpandedId(null);
       } catch (err) {
-        console.error("Error fetching consultations:", err);
-        setError("Failed to load consultations");
+        console.error("Error fetching data:", err);
+        setError("Failed to load data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchConsultations();
+    fetchData();
   }, [activeTab]);
 
   const formatDateTime = (date) => {
@@ -84,15 +87,13 @@ export default function Reports() {
 
   // Check if consultation has been completed/filled
   const isConsultationComplete = (c) => {
+    if (c.purpose === 'Medical Certificate') {
+      return c.status === 'completed';
+    }
     return !!(c.diagnosis || c.management || c.bloodPressure || c.temperature || c.heartRate);
   };
 
-  const filteredConsultations = consultations.filter(c => {
-    // Filter by tab
-    if (activeTab === 'medical-certificates') {
-      if (c.purpose !== 'Medical Certificate') return false;
-    }
-
+  const filteredData = consultations.filter(c => {
     if (nameFilter) {
       const q = nameFilter.toLowerCase();
       const firstName = c.firstName || c.patientId?.firstName || '';
@@ -182,8 +183,8 @@ export default function Reports() {
             <div className="consultation-split-view">
               {/* Left list */}
               <div className="consultation-list">
-              {filteredConsultations.length > 0 ? (
-                filteredConsultations.map((c) => {
+              {filteredData.length > 0 ? (
+                filteredData.map((c) => {
                     // use appointment-level name if present, otherwise fall back to populated patientId
                     const firstName = c.firstName || c.patientId?.firstName || 'Unknown';
                     const lastName = c.lastName || c.patientId?.lastName || '';
@@ -202,12 +203,12 @@ export default function Reports() {
                           <strong>Date:</strong>{' '}
                           {formatDateTime(c.appointmentDate)}
                         </p>
-                        <p className="consult-diagnosis">{c.diagnosis}</p>
+                        <p className="consult-diagnosis">{activeTab === 'consultations' ? c.diagnosis : 'Medical Certificate'}</p>
                       </div>
                     );
                   })
                 ) : (
-                  <p className="empty-list">No consultations found.</p>
+                  <p className="empty-list">No {activeTab === 'consultations' ? 'consultations' : 'medical certificates'} found.</p>
                 )}
               </div>
 
@@ -247,61 +248,105 @@ export default function Reports() {
                       <p>
                         <strong>Report ID:</strong> {selected._id}
                       </p>
-                      <p>
-                        <strong>Diagnosis:</strong> {selected.diagnosis}
-                      </p>
-                      <p>
-                        <strong>Management:</strong> {selected.management}
-                      </p>
-                      <p>
-                        <strong>Chief Complaint:</strong>{" "}
-                        {selected.chiefComplaint}
-                      </p>
+                      {activeTab === 'medical-certificates' ? (
+                        <>
+                          <p>
+                            <strong>Purpose:</strong> {selected.purpose || '—'}
+                          </p>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem("token");
+                                const response = await axios.get(`http://localhost:5000/api/appointments/${selected._id}/certificate-pdf`, {
+                                  headers: { Authorization: `Bearer ${token}` },
+                                  responseType: 'blob'
+                                });
 
-                      <p>
-                        <strong>Prescribed Medicines:</strong>
-                      </p>
-                      <ul>
-                        {Array.isArray(selected.medicinesPrescribed)
-                          ? selected.medicinesPrescribed.map((med, idx) => (
-                              <li key={idx}>
-                                {med.name} ×{med.quantity}
-                              </li>
-                            ))
-                          : (
-                            <li>{selected.medicinesPrescribed || "—"}</li>
-                          )}
-                      </ul>
+                                const url = window.URL.createObjectURL(new Blob([response.data]));
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.setAttribute('download', `medical_certificate_${selected._id}.pdf`);
+                                document.body.appendChild(link);
+                                link.click();
+                                link.remove();
+                                window.URL.revokeObjectURL(url);
+                              } catch (err) {
+                                console.error('Error downloading certificate:', err);
+                                alert('Failed to download certificate');
+                              }
+                            }}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#007bff',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              marginTop: '10px'
+                            }}
+                          >
+                            Download PDF
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <p>
+                            <strong>Diagnosis:</strong> {selected.diagnosis}
+                          </p>
+                          <p>
+                            <strong>Management:</strong> {selected.management}
+                          </p>
+                          <p>
+                            <strong>Chief Complaint:</strong>{" "}
+                            {selected.chiefComplaint}
+                          </p>
 
-                      <p>
-                        <strong>Blood Pressure:</strong> {selected.bloodPressure || '—'}
-                      </p>
-                      <p>
-                        <strong>Temperature:</strong> {selected.temperature || '—'}°C
-                      </p>
-                      <p>
-                        <strong>Heart Rate:</strong> {selected.heartRate || '—'} bpm
-                      </p>
-                      <p>
-                        <strong>O₂ Saturation:</strong> {selected.oxygenSaturation || '—'}%
-                      </p>
-                      <p>
-                        <strong>BMI:</strong> {selected.bmi || '—'}
-                      </p>
-                      <p>
-                        <strong>BMI Intervention:</strong> {selected.bmiIntervention || '—'}
-                      </p>
-                      <p>
-                        <strong>Referred:</strong>{" "}
-                        {selected.referredToPhysician
-                          ? `Yes (${selected.physicianName || "—"})`
-                          : "No"}
-                      </p>
-                      <p>
-                        <strong>First Aid:</strong>{" "}
-                        {selected.firstAidDone === "y" ? "Yes" : "No"} (
-                        {selected.firstAidWithin30Mins})
-                      </p>
+                          <p>
+                            <strong>Prescribed Medicines:</strong>
+                          </p>
+                          <ul>
+                            {Array.isArray(selected.medicinesPrescribed)
+                              ? selected.medicinesPrescribed.map((med, idx) => (
+                                  <li key={idx}>
+                                    {med.name} ×{med.quantity}
+                                  </li>
+                                ))
+                              : (
+                                <li>{selected.medicinesPrescribed || "—"}</li>
+                              )}
+                          </ul>
+
+                          <p>
+                            <strong>Blood Pressure:</strong> {selected.bloodPressure || '—'}
+                          </p>
+                          <p>
+                            <strong>Temperature:</strong> {selected.temperature || '—'}°C
+                          </p>
+                          <p>
+                            <strong>Heart Rate:</strong> {selected.heartRate || '—'} bpm
+                          </p>
+                          <p>
+                            <strong>O₂ Saturation:</strong> {selected.oxygenSaturation || '—'}%
+                          </p>
+                          <p>
+                            <strong>BMI:</strong> {selected.bmi || '—'}
+                          </p>
+                          <p>
+                            <strong>BMI Intervention:</strong> {selected.bmiIntervention || '—'}
+                          </p>
+                          <p>
+                            <strong>Referred:</strong>{" "}
+                            {selected.referredToPhysician
+                              ? `Yes (${selected.physicianName || "—"})`
+                              : "No"}
+                          </p>
+                          <p>
+                            <strong>First Aid:</strong>{" "}
+                            {selected.firstAidDone === "y" ? "Yes" : "No"} (
+                            {selected.firstAidWithin30Mins})
+                          </p>
+                        </>
+                      )}
                       <p>
                         <strong>Completed At:</strong>{" "}
                         {formatDateTime(
@@ -320,6 +365,8 @@ export default function Reports() {
             </div>
           </>
         )}
+
+
       </div>
     </AdminLayout>
   );

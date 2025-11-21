@@ -12,6 +12,7 @@ const {
   completeConsultation,
   generateReports,
   getConsultations,
+  getMedicalCertificates,
   getConsultationById,
   updateAppointment,
   saveConsultation,
@@ -41,6 +42,7 @@ router.post('/:id/prescribe', auth, prescribeMedicines);
 //  Reporting and analytics
 router.get('/reports', auth, generateReports);
 router.get('/consultations', auth, getConsultations);
+router.get('/medical-certificates', auth, getMedicalCertificates);
 router.get('/consultations/:id', auth, getConsultationById);
 
 //  Certificate generation

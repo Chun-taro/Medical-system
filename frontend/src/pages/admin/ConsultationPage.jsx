@@ -275,7 +275,7 @@ export default function ConsultationPage() {
                       <td>{app.patientId?.email}</td>
                       <td>{new Date(app.appointmentDate).toLocaleDateString()}</td>
                       <td>{app.purpose}</td>
-                      <td>
+                      <td className="action-cell">
                         {app.purpose === 'Medical Certificate' ? (
                           <button onClick={() => { setSelectedPDFAppointment(app); setShowPDFModal(true); }}>📄 Certificate</button>
                         ) : (

@@ -9,8 +9,8 @@
 }
 
 /* ──────────────── Dashboard Stats ──────────────── */
-.dashboard-left {
-  flex: 1;
+.dashboard-top {
+  width: 100%;
 }
 
 .dashboard-heading {
@@ -20,11 +20,13 @@
   color: #1e293b;
 }
 
-/* Stats cards smaller & vertical alignment */
+/* Stats cards side by side */
 .stats-grid {
   display: flex;
-  flex-direction: column; 
-  gap: 0.6rem; 
+  flex-direction: row;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  justify-content: space-around;
 }
 
 .stat-card {
@@ -75,12 +77,29 @@
   border-left: 4px solid #db8e08;
 }
 
-/* ──────────────── Calendar & Appointments ──────────────── */
-.dashboard-right {
-  flex: 1.3;
+/* ──────────────── Calendar Section ──────────────── */
+.calendar-section {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  width: 100%;
+}
+
+/* Calendar styling - make it big */
+.styled-calendar {
+  width: 100%;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  border-radius: 10px;
+  font-size: 1.2rem; /* Bigger overall font */
+}
+
+/* ──────────────── Dashboard Bottom ──────────────── */
+.dashboard-bottom {
   display: flex;
+  gap: 2rem;
   flex-direction: column;
-  gap: 1.5rem;
 }
 
 .calendar-card {
@@ -88,29 +107,19 @@
   border-radius: 16px;
   padding: 1rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  flex: 1;
 }
 
-/* Calendar styling */
-.styled-calendar {
-  width: 200%;
-  border: none;
-  font-family: 'Inter', sans-serif;
-  border-radius: 10px;
+.appointment-section {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  max-height: 300px;
+  overflow-y: auto;
 }
 
-.dashboard-left {
-  flex: 1;                
-}
-
-.dashboard-right {
-  flex:3;            
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.calendar-card {
-  flex: 1;                
+.chart-section {
   background-color: #fff;
   border-radius: 16px;
   padding: 1rem;
@@ -121,13 +130,14 @@
 /* Calendar tiles - square with gaps */
 .react-calendar__month-view__days__day,
 .react-calendar__tile {
-  border-radius: 6px !important; 
-  padding: 0.5rem 0;
-  margin: 3px; 
+  border-radius: 6px !important;
+  padding: 0.8rem 0; /* Increased padding for bigger tiles */
+  margin: 4px; /* Slightly more margin */
   text-align: center;
   font-weight: 500;
   color: #334155;
   transition: background 0.2s ease, color 0.2s ease;
+  font-size: 1.1rem; /* Bigger font */
 }
 
 .react-calendar__tile--active {
@@ -152,9 +162,12 @@
 /* ──────────────── Appointment List ──────────────── */
 .appointment-section {
   background: #fff;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 16px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  max-height: 300px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .appointment-title {
